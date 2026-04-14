@@ -134,85 +134,84 @@ const availableBrands = [...new Set(phones.map(p => p.brand))];
 						<svg id="menu-icon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" /></svg>
 					</button>
 				</div>
-
-			</div>
-
-			<!-- MOBILE MENU DRAWER -->
-			<div id="mobile-menu" class="fixed inset-0 top-16 bg-white z-[90] hidden md:hidden overflow-y-auto border-t border-slate-100 transition-transform duration-300 ease-in-out">
-				<div class="flex justify-end p-4">
-					<button id="mobile-menu-close" class="w-12 h-12 flex items-center justify-center text-slate-500 hover:text-slate-900 active:scale-95 transition-all rounded-xl bg-slate-50 border border-slate-200" aria-label="Close menu">
-						<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
-					</button>
-				</div>
-				<div class="p-6 pt-2 space-y-10">
-					<div class="space-y-4">
-						<p class="text-[10px] font-black uppercase tracking-[0.4em] text-slate-400">Main Menu</p>
-						<div class="grid grid-cols-1 gap-2">
-							<a href="/" class="flex items-center justify-between p-5 bg-slate-50 rounded-2xl text-sm font-black uppercase tracking-widest text-slate-900 border border-slate-100">
-								<span>Home</span>
-								<span class="text-slate-300">→</span>
-							</a>
-							<a href="/category/latest" class="flex items-center justify-between p-5 bg-slate-50 rounded-2xl text-sm font-black uppercase tracking-widest text-slate-900 border border-slate-100">
-								<span>Latest Releases</span>
-								<span class="text-slate-300">→</span>
-							</a>
-							<a href="/compare" class="flex items-center justify-between p-5 bg-blue-600 rounded-2xl text-sm font-black uppercase tracking-widest text-white border border-blue-500 shadow-lg shadow-blue-600/20">
-								<span>Compare Devices</span>
-								<span class="text-blue-200">→</span>
-							</a>
-						</div>
-					</div>
-
-					<div class="space-y-4">
-						<p class="text-[10px] font-black uppercase tracking-[0.4em] text-slate-400">Top Brands</p>
-						<div class="flex flex-wrap gap-2">
-							{availableBrands.map(brand => (
-								<a href={`/brand/${brand.toLowerCase()}`} class="px-4 py-2 bg-white border border-slate-200 rounded-full text-[10px] font-black uppercase tracking-widest text-slate-600">{brand}</a>
-							))}
-						</div>
-					</div>
-
-					<div class="space-y-4">
-						<p class="text-[10px] font-black uppercase tracking-[0.4em] text-slate-400">Price Ranges</p>
-						<div class="space-y-2">
-							{[
-								{ label: '5,000 - 10,000', slug: '5k-10k' },
-								{ label: '10,000 - 20,000', slug: '10k-20k' },
-								{ label: '20,000 - 40,000', slug: '20k-40k' },
-								{ label: 'Above 100,000', slug: '100k-plus' },
-							].map(range => (
-								<a href={`/price/${range.slug}`} class="flex items-center justify-between p-4 bg-white border border-slate-200 rounded-2xl text-[11px] font-black uppercase tracking-widest text-slate-900">
-									<span>{range.label} BDT</span>
-									<span class="text-blue-600">→</span>
-								</a>
-							))}
-						</div>
-					</div>
-				</div>
-			</div>
-
-			<!-- MOBILE SEARCH OVERLAY -->
-			<div id="mobile-search-overlay" class="fixed inset-0 top-16 bg-white z-[95] hidden md:hidden p-4 transition-opacity duration-300 ease-in-out" role="dialog" aria-modal="true" aria-label="Search phones">
-				<button id="mobile-search-close" class="absolute top-4 right-4 w-12 h-12 flex items-center justify-center text-slate-500 hover:text-slate-900 active:scale-95 transition-all rounded-xl bg-slate-50 border border-slate-200 z-10" aria-label="Close search">
-					<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
-				</button>
-				<div class="relative w-full mt-12">
-					<label for="mobile-search-input" class="sr-only">Search phones</label>
-					<input
-						id="mobile-search-input"
-						type="text"
-						placeholder="Search any phone..."
-						class="w-full pl-12 pr-4 h-14 bg-slate-100 border-2 border-slate-200 rounded-2xl outline-none text-base font-bold text-slate-900"
-					/>
-					<svg class="w-6 h-6 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
-						<path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
-					</svg>
-				</div>
-				<div id="mobile-suggestions-container" class="absolute top-[calc(100%+12rem)] left-4 right-4 bg-white border border-slate-200 rounded-2xl shadow-2xl z-50 max-h-[calc(100vh-280px)] overflow-y-auto hidden">
-					<div id="mobile-suggestions-list" class="divide-y divide-slate-50"></div>
-				</div>
 			</div>
 		</header>
+
+		<!-- MOBILE MENU DRAWER -->
+		<div id="mobile-menu" class="fixed inset-0 top-16 bg-white z-[150] hidden md:hidden overflow-y-auto border-t border-slate-100">
+			<div class="flex justify-end p-4">
+				<button id="mobile-menu-close" class="w-12 h-12 flex items-center justify-center text-slate-500 hover:text-slate-900 active:scale-95 transition-all rounded-xl bg-slate-50 border border-slate-200" aria-label="Close menu">
+					<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+				</button>
+			</div>
+			<div class="p-6 pt-2 space-y-10">
+				<div class="space-y-4">
+					<p class="text-[10px] font-black uppercase tracking-[0.4em] text-slate-400">Main Menu</p>
+					<div class="grid grid-cols-1 gap-2">
+						<a href="/" class="flex items-center justify-between p-5 bg-slate-50 rounded-2xl text-sm font-black uppercase tracking-widest text-slate-900 border border-slate-100">
+							<span>Home</span>
+							<span class="text-slate-300">→</span>
+						</a>
+						<a href="/category/latest" class="flex items-center justify-between p-5 bg-slate-50 rounded-2xl text-sm font-black uppercase tracking-widest text-slate-900 border border-slate-100">
+							<span>Latest Releases</span>
+							<span class="text-slate-300">→</span>
+						</a>
+						<a href="/compare" class="flex items-center justify-between p-5 bg-blue-600 rounded-2xl text-sm font-black uppercase tracking-widest text-white border border-blue-500 shadow-lg shadow-blue-600/20">
+							<span>Compare Devices</span>
+							<span class="text-blue-200">→</span>
+						</a>
+					</div>
+				</div>
+
+				<div class="space-y-4">
+					<p class="text-[10px] font-black uppercase tracking-[0.4em] text-slate-400">Top Brands</p>
+					<div class="flex flex-wrap gap-2">
+						{availableBrands.map(brand => (
+							<a href={`/brand/${brand.toLowerCase()}`} class="px-4 py-2 bg-white border border-slate-200 rounded-full text-[10px] font-black uppercase tracking-widest text-slate-600">{brand}</a>
+						))}
+					</div>
+				</div>
+
+				<div class="space-y-4">
+					<p class="text-[10px] font-black uppercase tracking-[0.4em] text-slate-400">Price Ranges</p>
+					<div class="space-y-2">
+						{[
+							{ label: '5,000 - 10,000', slug: '5k-10k' },
+							{ label: '10,000 - 20,000', slug: '10k-20k' },
+							{ label: '20,000 - 40,000', slug: '20k-40k' },
+							{ label: 'Above 100,000', slug: '100k-plus' },
+						].map(range => (
+							<a href={`/price/${range.slug}`} class="flex items-center justify-between p-4 bg-white border border-slate-200 rounded-2xl text-[11px] font-black uppercase tracking-widest text-slate-900">
+								<span>{range.label} BDT</span>
+								<span class="text-blue-600">→</span>
+							</a>
+						))}
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<!-- MOBILE SEARCH OVERLAY -->
+		<div id="mobile-search-overlay" class="fixed inset-0 top-16 bg-white z-[160] hidden md:hidden p-4" role="dialog" aria-modal="true" aria-label="Search phones">
+			<button id="mobile-search-close" class="absolute top-4 right-4 w-12 h-12 flex items-center justify-center text-slate-500 hover:text-slate-900 active:scale-95 transition-all rounded-xl bg-slate-50 border border-slate-200 z-10" aria-label="Close search">
+				<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+			</button>
+			<div class="relative w-full mt-12">
+				<label for="mobile-search-input" class="sr-only">Search phones</label>
+				<input
+					id="mobile-search-input"
+					type="text"
+					placeholder="Search any phone..."
+					class="w-full pl-12 pr-4 h-14 bg-slate-100 border-2 border-slate-200 rounded-2xl outline-none text-base font-bold text-slate-900"
+				/>
+				<svg class="w-6 h-6 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+					<path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+				</svg>
+			</div>
+			<div id="mobile-suggestions-container" class="absolute top-[calc(100%+12rem)] left-4 right-4 bg-white border border-slate-200 rounded-2xl shadow-2xl z-50 max-h-[calc(100vh-280px)] overflow-y-auto hidden">
+				<div id="mobile-suggestions-list" class="divide-y divide-slate-50"></div>
+			</div>
+		</div>
 
 		<main id="main-content" class="min-h-screen">
 			<slot />
@@ -292,113 +291,73 @@ const availableBrands = [...new Set(phones.map(p => p.brand))];
 			<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 15.75l7.5-7.5 7.5 7.5" /></svg>
 		</button>
 
+		<!-- CRITICAL UI SCRIPT (Menu/Search toggles) -->
+		<script is:inline>
+			(function() {
+				const menuTrigger = document.getElementById('mobile-menu-trigger');
+				const menu = document.getElementById('mobile-menu');
+				const menuClose = document.getElementById('mobile-menu-close');
+				const searchTrigger = document.getElementById('mobile-search-trigger');
+				const searchOverlay = document.getElementById('mobile-search-overlay');
+				const searchClose = document.getElementById('mobile-search-close');
+
+				const openMenu = () => {
+					menu?.classList.remove('hidden');
+					searchOverlay?.classList.add('hidden');
+					document.body.classList.add('overflow-hidden');
+					menuTrigger?.setAttribute('aria-expanded', 'true');
+				};
+
+				const closeMenu = () => {
+					menu?.classList.add('hidden');
+					document.body.classList.remove('overflow-hidden');
+					menuTrigger?.setAttribute('aria-expanded', 'false');
+				};
+
+				const openSearch = () => {
+					searchOverlay?.classList.remove('hidden');
+					menu?.classList.add('hidden');
+					document.body.classList.add('overflow-hidden');
+					searchTrigger?.setAttribute('aria-expanded', 'true');
+					setTimeout(() => document.getElementById('mobile-search-input')?.focus(), 100);
+				};
+
+				const closeSearch = () => {
+					searchOverlay?.classList.add('hidden');
+					document.body.classList.remove('overflow-hidden');
+					searchTrigger?.setAttribute('aria-expanded', 'false');
+				};
+
+				menuTrigger?.addEventListener('click', () => {
+					if (menu?.classList.contains('hidden')) openMenu();
+					else closeMenu();
+				});
+
+				menuClose?.addEventListener('click', closeMenu);
+				searchTrigger?.addEventListener('click', openSearch);
+				searchClose?.addEventListener('click', closeSearch);
+
+				searchOverlay?.addEventListener('click', (e) => {
+					if (e.target === searchOverlay) closeSearch();
+				});
+
+				// Close on ESC
+				document.addEventListener('keydown', (e) => {
+					if (e.key === 'Escape') {
+						closeMenu();
+						closeSearch();
+					}
+				});
+			})();
+		</script>
+
+		<!-- DEFERRED FUNCTIONALITY SCRIPT (Search/Scroll) -->
 		<script>
 			import searchIndex from '../data/search-index.json';
 
-			// Menu Toggles
-			const menuTrigger = document.getElementById('mobile-menu-trigger');
-			const menu = document.getElementById('mobile-menu');
-			const menuClose = document.getElementById('mobile-menu-close');
-			const searchTrigger = document.getElementById('mobile-search-trigger');
-			const searchOverlay = document.getElementById('mobile-search-overlay');
-			const searchClose = document.getElementById('mobile-search-close');
-
-			const openMenu = () => {
-				menu?.classList.remove('hidden');
-				searchOverlay?.classList.add('hidden');
-				document.body.classList.add('overflow-hidden');
-				menuTrigger?.setAttribute('aria-expanded', 'true');
-				// Focus first link in menu
-				menu?.querySelector('a')?.focus();
-			};
-
-			const closeMenu = () => {
-				menu?.classList.add('hidden');
-				document.body.classList.remove('overflow-hidden');
-				menuTrigger?.setAttribute('aria-expanded', 'false');
-				menuTrigger?.focus();
-			};
-
-			const openSearch = () => {
-				searchOverlay?.classList.remove('hidden');
-				menu?.classList.add('hidden');
-				document.body.classList.add('overflow-hidden');
-				searchTrigger?.setAttribute('aria-expanded', 'true');
-				// Focus search input after overlay appears
-				setTimeout(() => document.getElementById('mobile-search-input')?.focus(), 100);
-			};
-
-			const closeSearch = () => {
-				searchOverlay?.classList.add('hidden');
-				document.body.classList.remove('overflow-hidden');
-				searchTrigger?.setAttribute('aria-expanded', 'false');
-				// Clear search input
-				const mobileInput = document.getElementById('mobile-search-input');
-				const mobileResults = document.getElementById('mobile-suggestions-list');
-				const mobileContainer = document.getElementById('mobile-suggestions-container');
-				if (mobileInput) mobileInput.value = '';
-				if (mobileResults) mobileResults.innerHTML = '';
-				if (mobileContainer) mobileContainer.classList.add('hidden');
-				searchTrigger?.focus();
-			};
-
-			// Trap focus inside mobile menu
-			menu?.addEventListener('keydown', (e) => {
-				if (e.key === 'Tab') {
-					const focusable = menu.querySelectorAll('a, button, input');
-					if (focusable.length === 0) return;
-					const first = focusable[0];
-					const last = focusable[focusable.length - 1];
-					if (e.shiftKey && document.activeElement === first) {
-						e.preventDefault();
-						last.focus();
-					} else if (!e.shiftKey && document.activeElement === last) {
-						e.preventDefault();
-						first.focus();
-					}
-				}
-				if (e.key === 'Escape') closeMenu();
-			});
-
-			// Trap focus inside mobile search overlay
-			searchOverlay?.addEventListener('keydown', (e) => {
-				if (e.key === 'Tab') {
-					const focusable = searchOverlay.querySelectorAll('a, button, input');
-					if (focusable.length === 0) return;
-					const first = focusable[0];
-					const last = focusable[focusable.length - 1];
-					if (e.shiftKey && document.activeElement === first) {
-						e.preventDefault();
-						last.focus();
-					} else if (!e.shiftKey && document.activeElement === last) {
-						e.preventDefault();
-						first.focus();
-					}
-				}
-				if (e.key === 'Escape') closeSearch();
-			});
-
-			menuTrigger?.addEventListener('click', () => {
-				if (menu?.classList.contains('hidden')) {
-					openMenu();
-				} else {
-					closeMenu();
-				}
-			});
-
-			menuClose?.addEventListener('click', closeMenu);
-
-			searchTrigger?.addEventListener('click', openSearch);
-			searchClose?.addEventListener('click', closeSearch);
-
-			// Backdrop tap to close
-			searchOverlay?.addEventListener('click', (e) => {
-				if (e.target === searchOverlay) closeSearch();
-			});
-
 			// Scroll to Top
 			const scrollToTopBtn = document.getElementById('scroll-to-top');
-			let scrollTimeout: number;
+			let scrollTimeout;
 			window.addEventListener('scroll', () => {
 				clearTimeout(scrollTimeout);
 				scrollTimeout = window.setTimeout(() => {
@@ -422,15 +381,15 @@ const availableBrands = [...new Set(phones.map(p => p.brand))];
 			const esc = (str) => String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
 			// Search setup (Desktop & Mobile)
-			const setupSearch = (inputId: string, suggestionsId: string, listId: string) => {
-				const input = document.getElementById(inputId) as HTMLInputElement;
+			const setupSearch = (inputId, suggestionsId, listId) => {
+				const input = document.getElementById(inputId);
 				const box = document.getElementById(suggestionsId);
 				const list = document.getElementById(listId);
 
 				if (!input || !list) return;
 
 				input.addEventListener('input', (e) => {
-					const query = (e.target as HTMLInputElement).value.toLowerCase().trim();
+					const query = e.target.value.toLowerCase().trim();
 					if (query.length < 2) {
 						if(box) box.classList.add('hidden');
 						list.innerHTML = '';
