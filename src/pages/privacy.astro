@@ -1,0 +1,149 @@
+---
+import Layout from '../layouts/Layout.astro';
+
+const lastUpdated = "March 13, 2026";
+---
+
+<Layout title="Privacy Policy - Mobile Dokane | Data Protection Bangladesh" description="Learn how Mobile Dokane collects, uses, and protects your personal data. Updated March 2026. We comply with Bangladesh data protection standards.">
+  
+  <!-- POLICY HERO -->
+  <section class="bg-white py-24 border-b border-slate-200 relative overflow-hidden">
+    <div class="absolute inset-0 pointer-events-none">
+      <div class="absolute top-0 right-0 w-[600px] h-[600px] bg-blue-50 rounded-full blur-[120px] opacity-50 -mr-40 -mt-40"></div>
+    </div>
+    <div class="max-w-4xl mx-auto px-6 relative z-10 text-center">
+      <nav class="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400 mb-8">
+        <a href="/" class="hover:text-blue-600 transition-colors">Home</a>
+        <span>/</span>
+        <span class="text-slate-900">Privacy</span>
+      </nav>
+      <h1 class="text-5xl md:text-7xl font-black text-slate-900 tracking-tighter uppercase mb-6">Privacy Policy</h1>
+      <p class="text-sm font-bold text-slate-500 uppercase tracking-widest">Last Updated: {lastUpdated}</p>
+    </div>
+  </section>
+
+  <!-- POLICY CONTENT -->
+  <section class="bg-[#eeeeee] py-24 min-h-screen">
+    <div class="max-w-4xl mx-auto px-6">
+      <div class="bg-white p-8 sm:p-16 rounded-[3rem] border border-slate-200 shadow-sm space-y-16">
+        
+        <!-- 1. Introduction -->
+        <div>
+          <h2 class="text-2xl font-black text-slate-900 uppercase tracking-tight mb-6 flex items-center gap-3">
+            <span class="w-1.5 h-6 bg-blue-600 rounded-full"></span>
+            1. Introduction
+          </h2>
+          <p class="text-base font-bold text-slate-600 leading-relaxed">
+            Welcome to Mobile Dokane. We value your privacy and are committed to protecting your personal data. This Privacy Policy explains how we collect, use, and safeguard your information when you visit our website and use our mobile price tracking services in Bangladesh. By using our platform, you consent to the data practices described in this policy.
+          </p>
+        </div>
+
+        <!-- 2. Information We Collect -->
+        <div>
+          <h2 class="text-2xl font-black text-slate-900 uppercase tracking-tight mb-6 flex items-center gap-3">
+            <span class="w-1.5 h-6 bg-blue-600 rounded-full"></span>
+            2. Information We Collect
+          </h2>
+          <div class="space-y-6 text-base font-bold text-slate-600 leading-relaxed">
+            <p>We collect several types of information from and about users of our website, including:</p>
+            
+            <div class="bg-slate-50 p-6 rounded-2xl border border-slate-100">
+              <h3 class="text-sm font-black text-slate-900 uppercase mb-3">A. Personal Identification Information</h3>
+              <p>We may collect personal information such as your name, email address, and phone number only when you voluntarily provide it to us, for example, when you subscribe to our newsletter or contact us via our contact form.</p>
+            </div>
+
+            <div class="bg-slate-50 p-6 rounded-2xl border border-slate-100">
+              <h3 class="text-sm font-black text-slate-900 uppercase mb-3">B. Technical & Usage Data</h3>
+              <p>As you navigate through the website, we may use automatic data collection technologies to collect certain information about your equipment, browsing actions, and patterns, including:</p>
+              <ul class="list-disc pl-6 mt-3 space-y-2 text-sm">
+                <li>Details of your visits to our website, including traffic data and location data.</li>
+                <li>Information about your computer and internet connection, including your IP address, operating system, and browser type.</li>
+                <li>Search history and device interaction data to improve our "Favorite Phone" engine.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. How We Use Your Information -->
+        <div>
+          <h2 class="text-2xl font-black text-slate-900 uppercase tracking-tight mb-6 flex items-center gap-3">
+            <span class="w-1.5 h-6 bg-blue-600 rounded-full"></span>
+            3. Use of Information
+          </h2>
+          <p class="text-base font-bold text-slate-600 leading-relaxed mb-4">
+            The information we collect is used in the following ways:
+          </p>
+          <ul class="grid md:grid-cols-2 gap-4">
+            {[
+              "To present our website and its contents to you.",
+              "To provide you with information on mobile prices and specs.",
+              "To fulfill any other purpose for which you provide it.",
+              "To notify you about changes to our website or services.",
+              "To improve our platform and user experience.",
+              "To analyze market trends in Bangladesh."
+            ].map(item => (
+              <li class="flex items-start gap-3 bg-slate-50 p-4 rounded-xl border border-slate-100 text-sm font-bold">
+                <span class="text-blue-600">/</span> {item}
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <!-- 4. Data Security -->
+        <div>
+          <h2 class="text-2xl font-black text-slate-900 uppercase tracking-tight mb-6 flex items-center gap-3">
+            <span class="w-1.5 h-6 bg-blue-600 rounded-full"></span>
+            4. Data Security
+          </h2>
+          <p class="text-base font-bold text-slate-600 leading-relaxed">
+            We have implemented measures designed to secure your personal information from accidental loss and from unauthorized access, use, alteration, and disclosure. All information you provide to us is stored on our secure servers behind firewalls. We use SSL (Secure Sockets Layer) technology to encrypt data transmission.
+          </p>
+        </div>
+
+        <!-- 5. Disclosure of Information -->
+        <div>
+          <h2 class="text-2xl font-black text-slate-900 uppercase tracking-tight mb-6 flex items-center gap-3">
+            <span class="w-1.5 h-6 bg-blue-600 rounded-full"></span>
+            5. Disclosure of Your Information
+          </h2>
+          <p class="text-base font-bold text-slate-600 leading-relaxed">
+            We do not sell, trade, or rent your personal identification information to others. We may share generic aggregated demographic information not linked to any personal identification information regarding visitors and users with our business partners, trusted affiliates, and advertisers for the purposes outlined above.
+          </p>
+        </div>
+
+        <!-- 6. Third-Party Links -->
+        <div>
+          <h2 class="text-2xl font-black text-slate-900 uppercase tracking-tight mb-6 flex items-center gap-3">
+            <span class="w-1.5 h-6 bg-blue-600 rounded-full"></span>
+            6. Third-Party Websites
+          </h2>
+          <p class="text-base font-bold text-slate-600 leading-relaxed">
+            Our website may contain links to other sites (such as retail shops or manufacturers). If you click on a third-party link, you will be directed to that site. Note that these external sites are not operated by us. Therefore, we strongly advise you to review the Privacy Policy of these websites.
+          </p>
+        </div>
+
+        <!-- 7. Changes to Policy -->
+        <div>
+          <h2 class="text-2xl font-black text-slate-900 uppercase tracking-tight mb-6 flex items-center gap-3">
+            <span class="w-1.5 h-6 bg-blue-600 rounded-full"></span>
+            7. Changes to Our Privacy Policy
+          </h2>
+          <p class="text-base font-bold text-slate-600 leading-relaxed">
+            It is our policy to post any changes we make to our privacy policy on this page. If we make material changes to how we treat our users' personal information, we will notify you through a notice on the website home page.
+          </p>
+        </div>
+
+        <!-- 8. Contact Information -->
+        <div class="pt-12 border-t border-slate-100">
+          <h2 class="text-xl font-black text-slate-900 uppercase tracking-tight mb-4">Contact Information</h2>
+          <p class="text-sm font-bold text-slate-500 leading-relaxed">
+            To ask questions or comment about this privacy policy and our privacy practices, contact us at:
+            <br/><span class="text-blue-600">privacy@mobiledokane.com.bd</span>
+          </p>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+</Layout>

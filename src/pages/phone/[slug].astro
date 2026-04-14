@@ -1,0 +1,732 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import phones from '../../data/phones.json';
+import searchIndex from '../../data/search-index.json';
+import { formatPrice, formatTechValue } from '../../utils/format';
+
+export function getStaticPaths() {
+  return phones.map(phone => ({
+    params: { slug: phone.slug },
+    props: { phone },
+  }));
+}
+
+const { slug } = Astro.params;
+const phoneData = phones.find(p => p.slug === slug) || Astro.props.phone;
+const phone = phoneData;
+
+const currentMonthYear = new Date().toLocaleString('en-US', { month: 'long', year: 'numeric' });
+const seoTitle = `${phone.name} Price in Bangladesh - ${currentMonthYear}`;
+const seoDescription = `${phone.name} price in BD: ${formatPrice(phone.prices.unofficial)}. ${phone.overview?.chipset || 'Advanced chip'}, ${phone.overview?.camera || 'pro camera'}, ${phone.overview?.battery || 'long-lasting battery'}. Full specs & benchmarks inside.`;
+
+const specCategories = Object.entries(phone.specs_v2 || {});
+
+// Define benchmark categories for easier rendering
+const benchmarkCategories = [
+  { id: 'performance_test', title: 'Power & Speed', color: 'bg-blue-600', icon: 'M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z' },
+  { id: 'display_test', title: 'Screen Fidelity', color: 'bg-indigo-600', icon: 'M9 17.25v1.007a3 3 0 01-.879 2.122L7.5 21h9l-.621-.621A3 3 0 0115 18.257V17.25m6-12V15a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 15V5.25m18 0A2.25 2.25 0 0018.75 3H5.25A2.25 2.25 0 003 5.25m18 0H3' },
+  { id: 'battery_test', title: 'Endurance', color: 'bg-emerald-600', icon: 'M21 10.5h.375c.621 0 1.125.504 1.125 1.125v2.25c0 .621-.504 1.125-1.125 1.125H21M3.75 18h15A2.25 2.25 0 0021 15.75v-6a2.25 2.25 0 00-2.25-2.25h-15A2.25 2.25 0 001.5 9.75v6A2.25 2.25 0 003.75 18z' },
+  { id: 'camera_test', title: 'Optics Score', color: 'bg-rose-600', icon: 'M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316zM16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM18.75 10.5h.008v.008h-.008V10.5z' }
+];
+
+// Simple bar width calculator
+const getBarWidth = (value: string) => {
+  const num = parseInt(value.replace(/[^0-9]/g, ''));
+  if (isNaN(num)) return '70%';
+  if (num > 1000000) return '100%'; 
+  if (num > 5000) return '95%'; 
+  if (num > 1000) return '85%'; 
+  if (num > 100) return '90%'; 
+  return '60%';
+};
+
+// JSON-LD Schemas for SEO
+const productSchema = {
+  "@context": "https://schema.org/",
+  "@type": "Product",
+  "name": phone.name,
+  "image": [phone.image],
+  "description": seoDescription,
+  "brand": {
+    "@type": "Brand",
+    "name": phone.brand
+  },
+  "offers": {
+    "@type": "AggregateOffer",
+    "lowPrice": phone.prices.unofficial,
+    "highPrice": phone.prices.official,
+    "priceCurrency": "BDT",
+    "offerCount": phone.prices.variants?.length || 1,
+    "availability": "https://schema.org/InStock",
+    "offers": (phone.prices.variants || []).map(v => ({
+      "@type": "Offer",
+      "price": v.price,
+      "priceCurrency": "BDT",
+      "itemCondition": "https://schema.org/NewCondition",
+      "availability": "https://schema.org/InStock",
+      "name": `${phone.name} ${v.ram} RAM + ${v.storage}`,
+      "seller": {
+        "@type": "Organization",
+        "name": "Mobile Dokane"
+      }
+    }))
+  }
+};
+
+const breadcrumbSchema = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://mobiledokane.com" },
+    { "@type": "ListItem", "position": 2, "name": phone.brand, "item": `https://mobiledokane.com/brand/${phone.brand.toLowerCase()}` },
+    { "@type": "ListItem", "position": 3, "name": phone.name, "item": `https://mobiledokane.com/phone/${phone.slug}` }
+  ]
+};
+
+const faqSchema = phone.detailed_content?.faq ? {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": phone.detailed_content.faq.map(f => ({
+    "@type": "Question",
+    "name": f.q,
+    "acceptedAnswer": {
+      "@type": "Answer",
+      "text": f.a
+    }
+  }))
+} : null;
+---
+
+<Layout title={seoTitle} description={seoDescription} image={phone.image} url={`https://mobiledokane.com/phone/${phone.slug}`}>
+  <Fragment slot="head">
+    <script type="application/ld+json" set:html={JSON.stringify(productSchema)} />
+    <script type="application/ld+json" set:html={JSON.stringify(breadcrumbSchema)} />
+    {faqSchema && <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />}
+  </Fragment>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       MOBILE OPTIMIZED STICKY NAV
+  ═══════════════════════════════════════════════════════════ -->
+  <nav class="bg-white border-b border-slate-200 sticky top-16 z-40 overflow-x-auto no-scrollbar">
+    <div class="max-w-5xl mx-auto px-4 h-12 flex items-center justify-between min-w-max md:min-w-0">
+      <div class="flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-widest text-slate-500 mr-8">
+        <a href="/" class="hover:text-blue-600 transition-colors flex items-center gap-1">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" /></svg>
+          Home
+        </a>
+        <span class="text-slate-300">/</span>
+        <a href={`/brand/${phone.brand.toLowerCase()}`} class="hover:text-blue-600 transition-colors">{phone.brand}</a>
+        <span class="text-slate-300">/</span>
+        <span class="text-blue-600 font-black truncate max-w-[120px]">{phone.name}</span>
+      </div>
+      <div class="flex gap-4 md:gap-8">
+         <a href="#overview" class="text-[10px] font-black uppercase tracking-widest text-slate-700 hover:text-blue-600">Overview</a>
+         <a href="#specs" class="text-[10px] font-black uppercase tracking-widest text-slate-700 hover:text-blue-600">Specs</a>
+         <a href="#benchmarks" class="text-[10px] font-black uppercase tracking-widest text-slate-700 hover:text-blue-600">Benchmarks</a>
+         <a href="#price" class="text-[10px] font-black uppercase tracking-widest text-slate-700 hover:text-blue-600">Pricing</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       HERO SECTION (Mobile-First Layout)
+  ═══════════════════════════════════════════════════════════ -->
+  <section id="overview" class="bg-white py-8 lg:py-14 border-b border-slate-200">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6">
+      <div class="flex flex-col lg:grid lg:grid-cols-12 gap-8 lg:gap-10 items-center lg:items-start">
+        
+        <!-- Image Area -->
+        <div class="w-full lg:col-span-5 flex flex-col items-center">
+          <div class="relative group w-full max-w-[260px] lg:max-w-[300px] transition-transform duration-500 hover:scale-[1.02]">
+            <div class="absolute inset-0 bg-white rounded-[2rem] lg:rounded-[2.5rem] shadow-sm border border-slate-200"></div>
+            <img
+              id="main-phone-image"
+              src={phone.image}
+              alt={`${phone.name} — official product photo`}
+              width="400"
+              height="500"
+              class="relative w-full h-auto object-contain drop-shadow-xl z-10 py-6 lg:py-10 transition-opacity duration-300"
+              onerror="this.onerror=null;this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjUwMCIgdmlld0JveD0iMCAwIDQwMCA1MDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjQwMCIgaGVpZ2h0PSI1MDAiIGZpbGw9IiNmOGZhZmMiLz48cGF0aCBkPSJNMjAwIDIwMHYxMDAiIHN0cm9rZT0iIzk0YTNiOCIgc3Ryb2tlLXdpZHRoPSI0IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48cGF0aCBkPSJNMTUwIDI1MGgxMDAiIHN0cm9rZT0iIzk0YTNiOCIgc3Ryb2tlLXdpZHRoPSI0IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48dGV4dCB4PSIyMDAiIHk9IjMwMCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0iIzk0YTNiOCIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTYiIGZvbnQtd2VpZ2h0PSJib2xkIj5JbWFnZSBVbmF2YWlsYWJsZTwvdGV4dD48L3N2Zz4=';"
+              decoding="async"
+            />
+          </div>
+
+          <!-- COLOR SELECTOR -->
+          {phone.color_variants && (
+            <div class="mt-8 flex flex-col items-center gap-4">
+              <div class="flex flex-col items-center">
+                <p class="text-[11px] font-black uppercase tracking-[0.2em] text-slate-900">Available Colors</p>
+                <div class="h-0.5 w-6 bg-blue-600 mt-1 rounded-full"></div>
+              </div>
+              <div class="flex flex-wrap justify-center gap-4">
+                {phone.color_variants.map((color, idx) => (
+                  <button
+                    class={`color-swatch relative w-10 h-10 flex items-center justify-center rounded-full border-2 transition-all duration-300 hover:scale-110 active:scale-95 ${idx === 0 ? 'border-blue-600 ring-2 ring-blue-100' : 'border-slate-200'}`}
+                    style={`background-color: ${color.color}`}
+                    title={color.name}
+                    data-image={color.image}
+                    aria-label={`${color.name} color variant`}
+                  >
+                    <span class="w-7 h-7 rounded-full" style={`background-color: ${color.color}`}></span>
+                  </button>
+                ))}
+              </div>
+              <p id="color-name" class="text-[10px] font-black text-slate-900 uppercase tracking-widest">{phone.color_variants[0].name}</p>
+            </div>
+          )}
+        </div>
+
+        <!-- Info Area -->
+        <div class="w-full lg:col-span-7">
+          <div class="flex flex-wrap items-center gap-3 mb-4">
+             <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-[8px] font-black uppercase tracking-[0.2em] border border-blue-100">
+               <span class="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></span>
+               Verified Specs
+             </div>
+             {phone.rating && (
+                <div class="flex items-center gap-1.5 bg-white/50 px-2 py-1 rounded-full border border-slate-200">
+                   <div class="flex gap-0.5">
+                      {[1,2,3,4,5].map(i => (
+                         <div class={`w-2.5 h-2.5 rounded-full ${i <= Math.floor(phone.rating) ? 'bg-amber-400' : 'bg-slate-300'}`}></div>
+                      ))}
+                   </div>
+                   <span class="text-[10px] font-black text-slate-800">{phone.rating}</span>
+                </div>
+             )}
+          </div>
+
+          <h1 class="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-800 tracking-tight mb-6 leading-tight text-center lg:text-left">
+            {phone.name}
+          </h1>
+
+          <!-- VARIANT PRICING (Mobile Scrollable) -->
+          <div class="flex overflow-x-auto no-scrollbar gap-2 mb-8 pb-2 -mx-4 px-4 sm:mx-0 sm:px-0 sm:grid sm:grid-cols-3 snap-x snap-mandatory">
+             {phone.prices.variants?.map((v, idx) => (
+                <div class={`flex-shrink-0 w-36 sm:w-auto py-1.5 px-3 rounded-lg border transition-all duration-300 snap-center ${idx === 0 ? 'bg-white border-blue-500 ring-1 ring-blue-500 shadow-sm' : 'bg-white/50 border-slate-200'}`}>
+                   <p class="text-[7px] font-black text-slate-400 uppercase tracking-widest mb-0.5">{v.ram} + {v.storage}</p>
+                   <p class="text-sm sm:text-base font-black text-slate-900 tracking-tight">{formatPrice(v.price)}</p>
+                   {idx === 0 && <span class="text-[6px] font-bold text-blue-600 uppercase tracking-tighter">Recommended</span>}
+                </div>
+             ))}
+          </div>
+
+          <!-- Quick Specs Grid -->
+          <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+            {[
+              { label: 'Chipset', value: phone.overview?.chipset, iconColor: 'bg-blue-600', borderColor: 'border-blue-200' },
+              { label: 'Display', value: phone.overview?.display, iconColor: 'bg-indigo-600', borderColor: 'border-indigo-200' },
+              { label: 'Camera', value: phone.overview?.camera, iconColor: 'bg-emerald-600', borderColor: 'border-emerald-200' },
+              { label: 'Battery', value: phone.overview?.battery, iconColor: 'bg-amber-600', borderColor: 'border-amber-200' },
+              { label: 'RAM', value: phone.overview?.ram, iconColor: 'bg-purple-600', borderColor: 'border-purple-200' },
+              { label: 'Storage', value: phone.overview?.storage, iconColor: 'bg-rose-600', borderColor: 'border-rose-200' }
+            ].map(item => (
+              <div class={`group p-3 sm:p-4 bg-white border-2 ${item.borderColor} shadow-sm rounded-xl hover:shadow-md transition-all`}>
+                <div class="flex items-center gap-2 mb-2">
+                  <span class={`w-1.5 h-4 ${item.iconColor} rounded-full`}></span>
+                  <p class="text-[11px] font-black text-slate-500 uppercase tracking-widest">{item.label}</p>
+                </div>
+                <p class="text-[13px] sm:text-sm font-black text-slate-900 leading-tight">
+                  {item.value || '—'}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       DETAILED OVERVIEW (Expandable)
+  ═══════════════════════════════════════════════════════════ -->
+  {phone.detailed_content && (
+    <section class="bg-[#eeeeee] py-12 border-b border-slate-200">
+      <div class="max-w-4xl mx-auto px-4 sm:px-6">
+        <h2 class="text-2xl sm:text-3xl font-black text-slate-900 tracking-tighter mb-6 uppercase text-center">
+          Detailed Overview
+        </h2>
+        
+        <div class="relative group">
+          <p id="overview-text" class="text-base sm:text-lg font-medium text-slate-600 leading-relaxed text-center line-clamp-2 transition-all duration-500">
+            {phone.detailed_content.intro}
+          </p>
+
+          <div class="flex justify-center mt-4">
+            <button id="expand-btn" class="flex flex-col items-center gap-1 group/btn outline-none min-h-[48px] justify-center px-8">
+               <span id="expand-label" class="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400 group-hover/btn:text-blue-600 transition-colors">Read More</span>
+               <svg id="expand-icon" class="w-5 h-5 text-slate-300 group-hover/btn:text-blue-500 transition-all duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+               </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+  )}
+
+  <!-- ═══════════════════════════════════════════════════════════
+       PROS & CONS (Stacked Mobile)
+  ═══════════════════════════════════════════════════════════ -->
+  <section class="bg-[#eeeeee] py-8 sm:py-12">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6">
+      <div class="grid md:grid-cols-2 gap-6 sm:gap-8">
+        <div class="bg-white border-t-4 border-green-600 p-6 sm:p-8 rounded-b-2xl shadow-sm">
+           <h3 class="text-xs font-black text-green-700 uppercase tracking-widest mb-6 flex items-center gap-2">Strengths</h3>
+           <ul class="space-y-4">
+              {phone.pros?.map(pro => (
+                <li class="flex items-start gap-3">
+                   <div class="w-1 h-1 rounded-full bg-green-500 mt-2 flex-shrink-0"></div>
+                   <p class="text-sm font-bold text-slate-700 leading-tight">{pro}</p>
+                </li>
+              ))}
+           </ul>
+        </div>
+        <div class="bg-white border-t-4 border-red-600 p-6 sm:p-8 rounded-b-2xl shadow-sm">
+           <h3 class="text-xs font-black text-red-700 uppercase tracking-widest mb-6 flex items-center gap-2">Weaknesses</h3>
+           <ul class="space-y-4">
+              {phone.cons?.map(con => (
+                <li class="flex items-start gap-3">
+                   <div class="w-1 h-1 rounded-full bg-red-500 mt-2 flex-shrink-0"></div>
+                   <p class="text-sm font-bold text-slate-700 leading-tight">{con}</p>
+                </li>
+              ))}
+           </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       EXPERT EVALUATION (Mobile Optimized)
+  ═══════════════════════════════════════════════════════════ -->
+  <section class="bg-[#eeeeee] py-8 sm:py-12 border-b border-slate-200 expert-evaluation-section">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6">
+      <div class="bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-sm flex flex-col md:flex-row">
+        <div class="bg-slate-900 text-white p-8 md:w-1/3 flex flex-col justify-center items-center text-center">
+           <p class="text-[10px] font-black uppercase tracking-[0.2em] opacity-60 mb-2">Overall Rating</p>
+           <div class="text-6xl font-black tracking-tighter mb-2">{phone.rating}</div>
+           <div class="flex gap-1">
+              {[1,2,3,4,5].map(i => (
+                 <div class={`w-2 h-2 rounded-full ${i <= Math.floor(phone.rating) ? 'bg-amber-400' : 'bg-slate-700'}`}></div>
+              ))}
+           </div>
+        </div>
+        <div class="p-6 sm:p-8 md:w-2/3 grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-5 sm:gap-y-6">
+           {[
+              { label: 'Performance', score: phone.rating_details?.performance || phone.rating || 0 },
+              { label: 'Camera', score: phone.rating_details?.camera || phone.rating || 0 },
+              { label: 'Display', score: phone.rating_details?.display || phone.rating || 0 },
+              { label: 'Battery', score: phone.rating_details?.battery || phone.rating || 0 },
+              { label: 'Design', score: phone.rating_details?.design || phone.rating || 0 }
+           ].map(item => (
+              <div class="flex items-center justify-between gap-4">
+                 <span class="text-[10px] font-black uppercase tracking-widest text-slate-500 w-24">{item.label}</span>
+                 <div class="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                    <div 
+                      class="h-full bg-slate-800 rounded-full transition-all duration-1000 ease-out opacity-0 rating-progress-bar" 
+                      data-target-width={`${(item.score / 5) * 100}%`}
+                      style="width: 0%"
+                    ></div>
+                 </div>
+                 <span class="text-[11px] font-black text-slate-900 w-8 text-right">{item.score.toFixed(1)}</span>
+              </div>
+           ))}
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       SPECIFICATIONS (Stacked on Mobile)
+  ═══════════════════════════════════════════════════════════ -->
+  <section id="specs" class="bg-[#eeeeee] py-16">
+    <div class="max-w-4xl mx-auto px-4">
+      <div class="mb-12 text-center">
+        <h2 class="text-3xl sm:text-4xl font-black text-slate-800 tracking-tighter uppercase mb-2">Technical Specifications</h2>
+        <div class="h-1.5 w-20 bg-slate-400 mx-auto rounded-full"></div>
+      </div>
+      <div class="space-y-8 sm:space-y-12">
+        {specCategories.map(([category, items]) => (
+          <div class="rounded-2xl overflow-hidden border border-slate-200 shadow-sm">
+            <div class="bg-slate-800 text-white px-6 py-3">
+              <h3 class="text-sm font-bold uppercase tracking-[0.3em]">{category}</h3>
+            </div>
+            <div class="bg-white divide-y divide-slate-100">
+              {Object.entries(items).map(([key, value]) => (
+                <div class="grid grid-cols-4 hover:bg-slate-50 transition-colors">
+                  <div class="col-span-1 p-3 border-r border-slate-100 bg-slate-50/30 flex items-center min-w-0">
+                    <span class="text-[9px] sm:text-xs font-black text-slate-900 uppercase tracking-tighter leading-tight break-words">{key}</span>
+                  </div>
+                  <div class="col-span-3 p-3 min-w-0">
+                    <span class="text-[13px] sm:text-sm font-bold text-slate-700 leading-relaxed whitespace-pre-line break-words">{formatTechValue(value)}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       BENCHMARKS (High Readability Mobile)
+  ═══════════════════════════════════════════════════════════ -->
+  <section id="benchmarks" class="bg-[#eeeeee] py-12 border-t border-slate-200">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6">
+      <div class="mb-10 text-center">
+         <p class="text-[10px] font-black text-blue-600 uppercase tracking-[0.4em] mb-1.5">Laboratory Benchmarks</p>
+         <h2 class="text-2xl font-black text-slate-900 uppercase tracking-tighter">Verified Power Metrics</h2>
+      </div>
+      {phone.benchmarks_v2 ? (
+        <div class="grid md:grid-cols-2 gap-6">
+           {benchmarkCategories.map((cat) => (
+              phone.benchmarks_v2[cat.id] && (
+                <div class="bg-white p-6 border border-slate-200 shadow-sm rounded-xl hover:border-blue-200 transition-colors group">
+                   <div class="flex items-center gap-2.5 mb-6">
+                      <div class={`w-7 h-7 ${cat.color} text-white rounded-lg flex items-center justify-center`}>
+                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d={cat.icon} />
+                         </svg>
+                      </div>
+                      <h3 class="text-base font-black text-slate-900 uppercase tracking-tight">{cat.title}</h3>
+                   </div>
+                   <div class="space-y-6">
+                      {Object.values(phone.benchmarks_v2[cat.id]).map((test: any) => (
+                         <div>
+                            <div class="flex justify-between items-end mb-1.5">
+                               <div>
+                                  <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-0.5">{test.label}</p>
+                                  <p class="text-lg font-black text-slate-900 tracking-tighter">{test.value}</p>
+                               </div>
+                               {test.status && <span class="text-[8px] font-black bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded uppercase">{test.status}</span>}
+                            </div>
+                            <div class="w-full h-1 bg-slate-100 rounded-full overflow-hidden">
+                               <div class={`h-full ${cat.color} transition-all duration-1000 ease-out`} style={`width: ${getBarWidth(test.value)}`}></div>
+                            </div>
+                         </div>
+                      ))}
+                   </div>
+                </div>
+              )
+           ))}
+        </div>
+      ) : (
+        <div class="bg-white p-10 border border-dashed border-slate-200 text-center rounded-2xl">
+           <p class="text-slate-400 font-bold uppercase tracking-widest text-xs">Laboratory data currently unavailable</p>
+        </div>
+      )}
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       WHY YOU'LL LOVE IT (Compact Mobile)
+  ═══════════════════════════════════════════════════════════ -->
+  {phone.detailed_content && (
+    <section class="bg-[#eeeeee] py-12 border-t border-slate-200">
+      <div class="max-w-4xl mx-auto px-4 sm:px-6">
+        <h3 class="text-xl font-black text-slate-900 uppercase tracking-widest mb-8 flex items-center gap-3">
+           <span class="w-1.5 h-5 bg-blue-600 rounded-full"></span>
+           Why You'll Love It
+        </h3>
+        <div class="grid sm:grid-cols-2 gap-x-12 gap-y-2 sm:gap-y-4">
+           {phone.detailed_content.why_love_it.map(item => (
+             <div class="flex items-start gap-3 py-3 border-b border-slate-200 last:border-0">
+                <span class="text-blue-600 font-black text-base">/</span>
+                <p class="text-sm font-bold text-slate-700 leading-relaxed">{item}</p>
+             </div>
+           ))}
+        </div>
+      </div>
+    </section>
+  )}
+
+  <!-- ═══════════════════════════════════════════════════════════
+       SPECIAL FEATURES (Integrated Mobile)
+  ═══════════════════════════════════════════════════════════ -->
+  {phone.detailed_content && (
+    <section id="features" class="bg-[#eeeeee] py-12 border-t border-slate-200">
+      <div class="max-w-4xl mx-auto px-4 sm:px-6">
+        <h3 class="text-xl font-black text-slate-900 uppercase tracking-widest mb-8 flex items-center gap-3">
+           <span class="w-1.5 h-5 bg-slate-900 rounded-full"></span>
+           Special Features
+        </h3>
+        
+        <div class="space-y-4">
+           {phone.detailed_content.special_features.map(feature => (
+              <div class="bg-white border border-slate-200 p-6 sm:p-8 rounded-2xl hover:border-blue-100 transition-colors shadow-sm">
+                 <h4 class="text-base font-black text-slate-900 uppercase tracking-widest mb-3">{feature.title}</h4>
+                 <p class="text-sm font-bold text-slate-600 leading-relaxed">{feature.content}</p>
+              </div>
+           ))}
+        </div>
+      </div>
+    </section>
+  )}
+
+  <!-- ═══════════════════════════════════════════════════════════
+       MARKET PRICING (Mobile Optimized)
+  ═══════════════════════════════════════════════════════════ -->
+  <section id="price" class="bg-[#eeeeee] py-16 border-t border-slate-200">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6">
+      
+      <div class="mb-10 text-center">
+         <p class="text-[10px] font-black text-blue-600 uppercase tracking-[0.4em] mb-2">Verified Market Rates</p>
+         <h2 class="text-3xl sm:text-4xl font-black text-slate-900 uppercase tracking-tighter">Market Pricing</h2>
+         <div class="mt-4 inline-flex items-center gap-2 px-3 py-1 bg-white border border-slate-200 rounded-full text-[9px] font-bold text-slate-500 uppercase tracking-widest shadow-sm">
+            <span class="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
+            Updated Today · {phone.prices.best_price_store}
+         </div>
+      </div>
+
+      <div class="space-y-4">
+        {phone.prices.variants?.map((v, i) => (
+          <div class={`group relative flex flex-col sm:flex-row items-center justify-between py-3 px-6 bg-white border transition-all duration-300 rounded-[1.5rem] shadow-sm ${i === 0 ? 'border-blue-400 ring-2 ring-blue-50' : 'border-slate-200'}`}>
+            
+            {i === 0 && (
+              <div class="absolute -top-3 left-1/2 -translate-x-1/2 sm:left-10 sm:translate-x-0 px-3 py-1 bg-blue-600 text-white text-[8px] font-black uppercase tracking-widest rounded-full shadow-lg">
+                Best Value
+              </div>
+            )}
+
+            <div class="flex items-center gap-4 sm:gap-6 mb-4 sm:mb-0 w-full sm:w-auto">
+               <div class={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl flex items-center justify-center font-black text-base sm:text-lg flex-shrink-0 ${i === 0 ? 'bg-blue-50 text-blue-600' : 'bg-slate-50 text-slate-400'}`}>
+                  {v.ram[0]}
+               </div>
+               <div>
+                  <h3 class="text-lg sm:text-xl font-black text-slate-900 tracking-tight">{v.ram} + {v.storage}</h3>
+                  <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Global Variant · Official Support</p>
+               </div>
+            </div>
+            
+            <div class="flex flex-col items-center sm:items-end gap-1 w-full sm:w-auto border-t sm:border-t-0 border-slate-100 pt-4 sm:pt-0">
+               <div class="flex items-baseline gap-2">
+                  <span class="text-[10px] font-black text-slate-400 uppercase">BDT</span>
+                  <p class={`text-3xl sm:text-4xl font-black tracking-tighter ${i === 0 ? 'text-green-600' : 'text-slate-900'}`}>
+                    {v.price.toLocaleString()}
+                  </p>
+               </div>
+               <div class="flex items-center gap-2">
+                  <span class="text-[9px] font-black text-slate-400 uppercase tracking-tighter">Est. Unofficial Price</span>
+                  {i === 0 && <span class="text-[9px] font-black text-blue-600 uppercase underline decoration-2 underline-offset-2">Highly Recommended</span>}
+               </div>
+            </div>
+
+          </div>
+        ))}
+      </div>
+
+      <div class="mt-10 text-center p-6 border border-dashed border-slate-200 rounded-[2rem]">
+         <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest leading-relaxed max-w-xs mx-auto">
+            * Prices are subject to change based on market availability.
+         </p>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       SIMILAR PHONES
+  ═══════════════════════════════════════════════════════════ -->
+  <section class="bg-[#eeeeee] py-12 border-t border-slate-200">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6">
+      <h3 class="text-xl sm:text-2xl font-black text-slate-900 uppercase tracking-tight mb-8 flex items-center gap-3">
+        <span class="w-1.5 h-5 bg-blue-600 rounded-full"></span>
+        Similar Phones You May Like
+      </h3>
+      <div id="similar-phones-grid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6"></div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       FAQ (Mobile Optimized Cards)
+  ═══════════════════════════════════════════════════════════ -->
+  {phone.detailed_content && (
+    <section class="bg-[#eeeeee] py-16 border-t border-slate-200">
+      <div class="max-w-4xl mx-auto px-4 sm:px-6">
+        <h3 class="text-2xl sm:text-3xl font-black text-slate-900 uppercase tracking-tighter mb-10 text-center">Frequently Asked Questions</h3>
+        <div class="space-y-4 sm:space-y-6">
+           {phone.detailed_content.faq.map(faq => (
+              <div class="bg-white p-6 sm:p-8 rounded-2xl sm:rounded-3xl border border-slate-200 shadow-sm hover:border-blue-100 transition-colors">
+                 <p class="text-sm font-black text-slate-900 uppercase tracking-tight mb-2">Q: {faq.q}</p>
+                 <div class="h-0.5 bg-slate-100 w-8 mb-3"></div>
+                 <p class="text-sm font-bold text-slate-600 leading-relaxed">{faq.a}</p>
+              </div>
+           ))}
+        </div>
+      </div>
+    </section>
+  )}
+
+  <!-- ═══════════════════════════════════════════════════════════
+       SOCIAL SHARING & PRINT
+  ═══════════════════════════════════════════════════════════ -->
+  <section class="bg-[#eeeeee] py-8 border-t border-slate-200">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6">
+      <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div class="flex items-center gap-3">
+          <span class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Share this phone</span>
+          <button onclick="sharePhone('facebook')" class="w-10 h-10 flex items-center justify-center bg-white border border-slate-200 rounded-xl text-slate-500 hover:text-blue-600 hover:border-blue-300 transition-all shadow-sm min-w-[44px]" aria-label="Share on Facebook">
+            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+          </button>
+          <button onclick="sharePhone('twitter')" class="w-10 h-10 flex items-center justify-center bg-white border border-slate-200 rounded-xl text-slate-500 hover:text-blue-400 hover:border-blue-300 transition-all shadow-sm min-w-[44px]" aria-label="Share on Twitter">
+            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+          </button>
+          <button onclick="sharePhone('whatsapp')" class="w-10 h-10 flex items-center justify-center bg-white border border-slate-200 rounded-xl text-slate-500 hover:text-green-600 hover:border-green-300 transition-all shadow-sm min-w-[44px]" aria-label="Share on WhatsApp">
+            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+          </button>
+          <button onclick="shareNative()" class="w-10 h-10 flex items-center justify-center bg-white border border-slate-200 rounded-xl text-slate-500 hover:text-blue-600 hover:border-blue-300 transition-all shadow-sm min-w-[44px]" aria-label="Share via native app">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M7.217 10.907a2.25 2.25 0 100 2.186m0-2.186c.18.324.384.633.61.925m-1.832-1.832a2.25 2.25 0 10-2.186 0m2.186 1.832c.292.226.601.43.925.61m0 0a2.25 2.25 0 102.186 0m-2.186 0c-.324.18-.633.384-.925.61m.925-.61a2.25 2.25 0 100 2.186m0-2.186c-.18.324-.384.633-.61.925m1.832-1.832a2.25 2.25 0 10-2.186 0m2.186 0c.324-.18.633-.384.925-.61m0 0a2.25 2.25 0 100-2.186m-1.832 2.186c-.292-.226-.601-.43-.925-.61m.925.61a2.25 2.25 0 102.186 0M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25z"/></svg>
+          </button>
+        </div>
+        <div class="flex items-center gap-3">
+          <button onclick="window.print()" class="flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-slate-900 hover:border-slate-400 transition-all shadow-sm min-h-[44px]" aria-label="Print specs">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0110.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0l.229 2.526a1.15 1.15 0 01-1.147 1.249H7.258a1.15 1.15 0 01-1.147-1.25L6.34 18m11.32-4.171a42.415 42.415 0 00-10.56 0m11.32 0c1.26.187 2.476.456 3.65.794a.75.75 0 00.948-.828l-.71-5.07a.75.75 0 00-.613-.626 44.475 44.475 0 00-4.318-.283M6.34 18a44.58 44.58 0 01-4.318.283.75.75 0 01-.613.626l-.71 5.07a.75.75 0 00.948.828c1.174-.338 2.39-.607 3.65-.794" /></svg>
+            Print Specs
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</Layout>
+
+<script is:inline define:vars={{ searchIndex, phoneName: phone.name, phoneSlug: phone.slug }}>
+  // XSS-safe HTML escaping
+  const esc = (str) => String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+  const expandBtn = document.getElementById('expand-btn');
+  const overviewText = document.getElementById('overview-text');
+  const expandIcon = document.getElementById('expand-icon');
+  const expandLabel = document.getElementById('expand-label');
+
+  if (expandBtn && overviewText && expandIcon && expandLabel) {
+    expandBtn.addEventListener('click', () => {
+      const isExpanded = overviewText.classList.contains('line-clamp-none');
+
+      if (isExpanded) {
+        overviewText.classList.remove('line-clamp-none');
+        overviewText.classList.add('line-clamp-2');
+        expandIcon.style.transform = 'rotate(0deg)';
+        expandLabel.textContent = 'Read More';
+      } else {
+        overviewText.classList.remove('line-clamp-2');
+        overviewText.classList.add('line-clamp-none');
+        expandIcon.style.transform = 'rotate(180deg)';
+        expandLabel.textContent = 'Show Less';
+      }
+    });
+  }
+
+  // Swatch interaction
+  const swatches = document.querySelectorAll('.color-swatch');
+  const mainImage = document.getElementById('main-phone-image');
+  const colorName = document.getElementById('color-name');
+
+  swatches.forEach(swatch => {
+    swatch.addEventListener('click', (e) => {
+      const target = e.currentTarget;
+      const newImage = target.dataset.image;
+      const name = target.title;
+
+      // Update active state
+      swatches.forEach(s => s.classList.remove('border-blue-600', 'ring-2', 'ring-blue-100'));
+      target.classList.add('border-blue-600', 'ring-2', 'ring-blue-100');
+
+      // Animate image switch
+      if (mainImage && newImage) {
+        mainImage.style.opacity = '0';
+        setTimeout(() => {
+          mainImage.src = newImage;
+          mainImage.style.opacity = '1';
+        }, 300);
+      }
+
+      if (colorName) colorName.textContent = name;
+    });
+  });
+
+  const observerOptions = {
+    threshold: 0.1
+  };
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const bars = entry.target.querySelectorAll('.rating-progress-bar');
+        bars.forEach((bar) => {
+          const el = bar;
+          el.style.width = el.dataset.targetWidth || '0%';
+          el.style.opacity = "1";
+        });
+        observer.unobserve(entry.target);
+      }
+    });
+  }, observerOptions);
+
+  const targetSection = document.querySelector('.expert-evaluation-section');
+  if (targetSection) {
+    observer.observe(targetSection);
+  }
+
+  // Sharing functions
+  window.sharePhone = function(platform) {
+    const pageUrl = window.location.href;
+    const text = `Check out ${phoneName} - Price in Bangladesh: ${pageUrl}`;
+    let url = '';
+    switch(platform) {
+      case 'facebook':
+        url = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(pageUrl)}`;
+        break;
+      case 'twitter':
+        url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`;
+        break;
+      case 'whatsapp':
+        url = `https://wa.me/?text=${encodeURIComponent(text)}`;
+        break;
+    }
+    if (url) window.open(url, '_blank', 'width=600,height=400');
+  };
+
+  window.shareNative = async function() {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: phoneName,
+          text: `Check out ${phoneName} price in Bangladesh`,
+          url: window.location.href
+        });
+      } catch (e) {
+        if (e.name !== 'AbortError') console.error(e);
+      }
+    }
+  };
+
+  // Similar Phones (uses lightweight search-index instead of full phones.json)
+  const similarPhonesList = searchIndex
+    .filter(p => p.s !== phoneSlug)
+    .sort(() => 0.5 - Math.random())
+    .slice(0, 4);
+
+  if (similarPhonesList.length > 0) {
+    const grid = document.getElementById('similar-phones-grid');
+    if (grid) {
+      grid.innerHTML = similarPhonesList.map(p => `
+        <a href="/phone/${esc(p.s)}" class="group flex flex-col bg-white rounded-xl border border-slate-200 hover:border-blue-400 hover:shadow-lg transition-all duration-300 overflow-hidden shadow-sm">
+          <div class="p-3 flex items-center justify-center bg-gradient-to-b from-slate-50 to-white">
+            <img src="${esc(p.i)}" alt="${esc(p.n)} — product photo" class="h-24 sm:h-28 object-contain mix-blend-multiply group-hover:scale-105 transition-transform duration-300" loading="lazy" width="200" height="250" />
+          </div>
+          <div class="p-3 flex-1 flex flex-col">
+            <h4 class="text-xs font-black text-slate-900 leading-tight mb-2 group-hover:text-blue-600 transition-colors line-clamp-2">${esc(p.n)}</h4>
+          </div>
+        </a>
+      `).join('');
+    }
+  }
+</script>
+
+<style>
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+</style>

@@ -1,0 +1,85 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import PhoneCard from '../../components/PhoneCard.astro';
+import phones from '../../data/phones.json';
+
+export function getStaticPaths() {
+  const brands = [...new Set(phones.map(p => p.brand.toLowerCase()))];
+  return brands.map(brand => ({
+    params: { brand },
+    props: { 
+      brandName: phones.find(p => p.brand.toLowerCase() === brand)?.brand || brand 
+    }
+  }));
+}
+
+const { brand } = Astro.params;
+const { brandName } = Astro.props;
+
+const filteredPhones = phones.filter(p => p.brand.toLowerCase() === brand);
+
+const itemListSchema = {
+  "@context": "https://schema.org",
+  "@type": "ItemList",
+  "name": `${brandName} Phones`,
+  "itemListElement": filteredPhones.map((phone, i) => ({
+    "@type": "ListItem",
+    "position": i + 1,
+    "item": {
+      "@type": "Product",
+      "name": phone.name,
+      "url": `https://mobiledokane.com/phone/${phone.slug}`,
+      "image": phone.image,
+      "offers": {
+        "@type": "Offer",
+        "price": phone.prices.unofficial,
+        "priceCurrency": "BDT"
+      }
+    }
+  }))
+};
+---
+
+<Layout title={`${brandName} Phones Price in Bangladesh - Mobile Dokane`} description={`Browse every verified ${brandName} device in Bangladesh. Live prices, lab-tested benchmarks, and full technical specs for every model.`}>
+  <Fragment slot="head">
+    {filteredPhones.length > 0 && <script type="application/ld+json" set:html={JSON.stringify(itemListSchema)} />}
+  </Fragment>
+    <section class="bg-white border-b border-slate-200 py-16">
+        <div class="max-w-6xl mx-auto px-6 text-center lg:text-left">
+            <nav class="flex items-center justify-center lg:justify-start gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400 mb-8">
+                <a href="/" class="hover:text-blue-600 transition-colors">Home</a>
+                <span>/</span>
+                <span class="text-slate-900">Brand</span>
+                <span>/</span>
+                <span class="text-blue-600">{brandName}</span>
+            </nav>
+            
+            <h1 class="text-5xl md:text-7xl font-black text-slate-900 tracking-tighter uppercase leading-none">
+                {brandName} <span class="text-blue-600">Collection</span>
+            </h1>
+            <p class="mt-6 text-lg font-bold text-slate-500 max-w-2xl mx-auto lg:mx-0">
+                Browse every verified {brandName} device. We track live prices and lab-tested benchmarks for every model listed here.
+            </p>
+        </div>
+    </section>
+
+    <section class="bg-[#eeeeee] py-20 min-h-screen">
+        <div class="max-w-6xl mx-auto px-6">
+            <div class="flex items-center justify-between mb-12">
+                <p class="text-[10px] font-black text-slate-500 uppercase tracking-[0.4em]">Available: {filteredPhones.length} Models</p>
+            </div>
+
+            {filteredPhones.length > 0 ? (
+                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+                    {filteredPhones.map((phone) => (
+                        <PhoneCard phone={phone} />
+                    ))}
+                </div>
+            ) : (
+                <div class="bg-white p-20 rounded-3xl border border-dashed border-slate-300 text-center">
+                    <p class="text-slate-400 font-black uppercase tracking-widest text-sm">No models found for this brand yet.</p>
+                </div>
+            )}
+        </div>
+    </section>
+</Layout>

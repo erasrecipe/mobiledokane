@@ -1,0 +1,509 @@
+---
+import "../styles/global.css";
+import phones from '../data/phones.json';
+
+interface Props {
+	title: string;
+	description?: string;
+	image?: string;
+	url?: string;
+}
+
+const { title, description, image, url } = Astro.props;
+const canonicalUrl = url || `https://mobiledokane.com${Astro.url.pathname}`;
+const ogImage = image || "https://mobiledokane.com/og-image.png";
+const siteDescription = description || "Compare mobile phone prices in Bangladesh. Get verified specs, lab-tested benchmarks, and real-time BDT pricing from Dhaka's top markets.";
+
+// Dynamically generate brand list from actual data
+const availableBrands = [...new Set(phones.map(p => p.brand))];
+---
+
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<title>{title}</title>
+
+		<!-- Canonical URL -->
+		<link rel="canonical" href={canonicalUrl} />
+
+		<!-- Hreflang for Bangladesh market -->
+		<link rel="alternate" hreflang="en-bd" href={canonicalUrl} />
+		<link rel="alternate" hreflang="x-default" href={canonicalUrl} />
+
+		<!-- Open Graph / Facebook -->
+		<meta property="og:type" content="website" />
+		<meta property="og:url" content={canonicalUrl} />
+		<meta property="og:title" content={title} />
+		<meta property="og:description" content={siteDescription} />
+		<meta property="og:image" content={ogImage} />
+		<meta property="og:site_name" content="Mobile Dokane" />
+		<meta property="og:locale" content="en_BD" />
+
+		<!-- Twitter Card -->
+		<meta name="twitter:card" content="summary_large_image" />
+		<meta name="twitter:url" content={canonicalUrl} />
+		<meta name="twitter:title" content={title} />
+		<meta name="twitter:description" content={siteDescription} />
+		<meta name="twitter:image" content={ogImage} />
+
+		<slot name="head" />
+	</head>
+	<body class="bg-[#eeeeee] text-slate-900 font-sans antialiased overflow-x-hidden">
+
+		<!-- Skip to main content link (screen reader + keyboard navigation) -->
+		<a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[500] focus:px-4 focus:py-2 focus:bg-blue-600 focus:text-white focus:rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400">
+			Skip to main content
+		</a>
+
+		<!-- ═══════════════════════════════════════════════════════════
+		     GLOBAL HEADER (Mobile Optimized)
+		═══════════════════════════════════════════════════════════ -->
+		<header class="bg-white/90 backdrop-blur-md border-b border-slate-200 sticky top-0 z-[100] shadow-sm">
+			<div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between gap-4">
+				
+				<!-- Logo -->
+				<a href="/" class="flex items-center gap-2 group shrink-0" aria-label="Mobile Dokane - Go to homepage">
+					<div class="bg-slate-900 text-white w-8 h-8 rounded-lg flex items-center justify-center font-black text-xl group-hover:bg-blue-600 transition-colors shadow-lg shadow-blue-900/10" role="img" aria-label="Mobile Dokane logo">M</div>
+					<div class="flex flex-col leading-none">
+						<span class="text-base sm:text-lg font-black text-slate-900 uppercase tracking-tighter">Mobile Dokane</span>
+						<span class="text-[8px] sm:text-[10px] font-black text-blue-600 uppercase tracking-[0.1em]">find your favorite phone</span>
+					</div>
+				</a>
+
+				<!-- Desktop Search -->
+				<div class="hidden lg:flex flex-1 max-w-xl">
+					<div class="relative w-full group">
+						<label for="header-search" class="sr-only">Search phones</label>
+						<input
+							id="header-search"
+							type="text"
+							placeholder="Search 2,500+ phones..."
+							class="w-full pl-12 pr-4 py-2 bg-slate-100 border-2 border-transparent rounded-2xl focus:bg-white focus:border-blue-600 outline-none text-sm font-bold text-slate-900 transition-all placeholder:text-slate-400"
+							autocomplete="off"
+						/>
+						<svg class="w-5 h-5 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2 group-focus-within:text-blue-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+							<path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+						</svg>
+						<div id="header-suggestions" class="absolute top-full left-0 w-full bg-white border border-slate-200 rounded-2xl mt-2 shadow-2xl z-[150] hidden overflow-hidden">
+							<div id="header-suggestions-list" class="divide-y divide-slate-50"></div>
+						</div>
+					</div>
+				</div>
+
+				<!-- Desktop Nav -->
+				<nav class="hidden md:flex items-center gap-4 lg:gap-6 shrink-0">
+					{/* Brands Dropdown */}
+					<div class="relative group h-16 flex items-center">
+						<button aria-label="Browse brands" class="text-[10px] lg:text-[11px] font-black uppercase tracking-widest text-slate-500 group-hover:text-blue-600 transition-colors flex items-center gap-1">Brands</button>
+						<div class="absolute top-16 left-0 w-48 bg-white border border-slate-200 rounded-2xl shadow-2xl py-4 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-[110] translate-y-2 group-hover:translate-y-0">
+							{availableBrands.map(brand => (
+								<a href={`/brand/${brand.toLowerCase()}`} class="block px-6 py-2 text-[10px] font-black uppercase tracking-widest text-slate-600 hover:text-blue-600 hover:bg-slate-50 transition-colors">{brand}</a>
+							))}
+						</div>
+					</div>
+
+					{/* Budget Dropdown */}
+					<div class="relative group h-16 flex items-center">
+						<button aria-label="Browse by budget" class="text-[10px] lg:text-[11px] font-black uppercase tracking-widest text-slate-500 group-hover:text-blue-600 transition-colors flex items-center gap-1">Budget</button>
+						<div class="absolute top-16 left-0 w-56 bg-white border border-slate-200 rounded-2xl shadow-2xl py-4 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-[110] translate-y-2 group-hover:translate-y-0">
+							{[
+								{ label: '5k - 10k', slug: '5k-10k' },
+								{ label: '10k - 20k', slug: '10k-20k' },
+								{ label: '20k - 40k', slug: '20k-40k' },
+								{ label: '40k - 60k', slug: '40k-60k' },
+								{ label: 'Above 100k', slug: '100k-plus' },
+							].map(range => (
+								<a href={`/price/${range.slug}`} class="block px-6 py-2 text-[10px] font-black uppercase tracking-widest text-slate-600 hover:text-blue-600 hover:bg-slate-50 transition-colors">{range.label} BDT</a>
+							))}
+						</div>
+					</div>
+
+					<a href="/category/flagship" class="text-[10px] lg:text-[11px] font-black uppercase tracking-widest text-slate-500 hover:text-blue-600 transition-colors">Flagship</a>
+					<a href="/compare" aria-label="Compare phones side by side" class="text-[10px] lg:text-[11px] font-black uppercase tracking-widest text-slate-900 hover:text-blue-600 transition-colors">Compare</a>
+				</nav>
+
+				<!-- Mobile Actions -->
+				<div class="flex md:hidden items-center gap-1">
+					<button id="mobile-search-trigger" class="w-12 h-12 flex items-center justify-center text-slate-900 active:scale-95 transition-all outline-none" aria-label="Search" aria-expanded="false" aria-controls="mobile-search-overlay">
+						<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg>
+					</button>
+					<button id="mobile-menu-trigger" class="w-12 h-12 flex items-center justify-center text-white bg-slate-900 rounded-xl active:scale-95 transition-all outline-none ml-1" aria-label="Open menu" aria-expanded="false" aria-controls="mobile-menu">
+						<svg id="menu-icon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" /></svg>
+					</button>
+				</div>
+
+			</div>
+
+			<!-- MOBILE MENU DRAWER -->
+			<div id="mobile-menu" class="fixed inset-0 top-16 bg-white z-[90] hidden md:hidden overflow-y-auto border-t border-slate-100 transition-transform duration-300 ease-in-out">
+				<div class="flex justify-end p-4">
+					<button id="mobile-menu-close" class="w-12 h-12 flex items-center justify-center text-slate-500 hover:text-slate-900 active:scale-95 transition-all rounded-xl bg-slate-50 border border-slate-200" aria-label="Close menu">
+						<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+					</button>
+				</div>
+				<div class="p-6 pt-2 space-y-10">
+					<div class="space-y-4">
+						<p class="text-[10px] font-black uppercase tracking-[0.4em] text-slate-400">Main Menu</p>
+						<div class="grid grid-cols-1 gap-2">
+							<a href="/" class="flex items-center justify-between p-5 bg-slate-50 rounded-2xl text-sm font-black uppercase tracking-widest text-slate-900 border border-slate-100">
+								<span>Home</span>
+								<span class="text-slate-300">→</span>
+							</a>
+							<a href="/category/latest" class="flex items-center justify-between p-5 bg-slate-50 rounded-2xl text-sm font-black uppercase tracking-widest text-slate-900 border border-slate-100">
+								<span>Latest Releases</span>
+								<span class="text-slate-300">→</span>
+							</a>
+							<a href="/compare" class="flex items-center justify-between p-5 bg-blue-600 rounded-2xl text-sm font-black uppercase tracking-widest text-white border border-blue-500 shadow-lg shadow-blue-600/20">
+								<span>Compare Devices</span>
+								<span class="text-blue-200">→</span>
+							</a>
+						</div>
+					</div>
+
+					<div class="space-y-4">
+						<p class="text-[10px] font-black uppercase tracking-[0.4em] text-slate-400">Top Brands</p>
+						<div class="flex flex-wrap gap-2">
+							{availableBrands.map(brand => (
+								<a href={`/brand/${brand.toLowerCase()}`} class="px-4 py-2 bg-white border border-slate-200 rounded-full text-[10px] font-black uppercase tracking-widest text-slate-600">{brand}</a>
+							))}
+						</div>
+					</div>
+
+					<div class="space-y-4">
+						<p class="text-[10px] font-black uppercase tracking-[0.4em] text-slate-400">Price Ranges</p>
+						<div class="space-y-2">
+							{[
+								{ label: '5,000 - 10,000', slug: '5k-10k' },
+								{ label: '10,000 - 20,000', slug: '10k-20k' },
+								{ label: '20,000 - 40,000', slug: '20k-40k' },
+								{ label: 'Above 100,000', slug: '100k-plus' },
+							].map(range => (
+								<a href={`/price/${range.slug}`} class="flex items-center justify-between p-4 bg-white border border-slate-200 rounded-2xl text-[11px] font-black uppercase tracking-widest text-slate-900">
+									<span>{range.label} BDT</span>
+									<span class="text-blue-600">→</span>
+								</a>
+							))}
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<!-- MOBILE SEARCH OVERLAY -->
+			<div id="mobile-search-overlay" class="fixed inset-0 top-16 bg-white z-[95] hidden md:hidden p-4 transition-opacity duration-300 ease-in-out" role="dialog" aria-modal="true" aria-label="Search phones">
+				<button id="mobile-search-close" class="absolute top-4 right-4 w-12 h-12 flex items-center justify-center text-slate-500 hover:text-slate-900 active:scale-95 transition-all rounded-xl bg-slate-50 border border-slate-200 z-10" aria-label="Close search">
+					<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+				</button>
+				<div class="relative w-full mt-12">
+					<label for="mobile-search-input" class="sr-only">Search phones</label>
+					<input
+						id="mobile-search-input"
+						type="text"
+						placeholder="Search any phone..."
+						class="w-full pl-12 pr-4 h-14 bg-slate-100 border-2 border-slate-200 rounded-2xl outline-none text-base font-bold text-slate-900"
+					/>
+					<svg class="w-6 h-6 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+						<path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+					</svg>
+				</div>
+				<div id="mobile-suggestions-container" class="absolute top-[calc(100%+12rem)] left-4 right-4 bg-white border border-slate-200 rounded-2xl shadow-2xl z-50 max-h-[calc(100vh-280px)] overflow-y-auto hidden">
+					<div id="mobile-suggestions-list" class="divide-y divide-slate-50"></div>
+				</div>
+			</div>
+		</header>
+
+		<main id="main-content" class="min-h-screen">
+			<slot />
+		</main>
+
+		<noscript>
+			<div class="bg-amber-50 border-b border-amber-200 px-4 py-3 text-center text-xs font-bold text-amber-800">
+				JavaScript is required for full functionality including search, mobile menu, and device comparison.
+			</div>
+		</noscript>
+
+		<!-- ═══════════════════════════════════════════════════════════
+		     FOOTER (Mobile Optimized Stacking)
+		═══════════════════════════════════════════════════════════ -->
+		<footer class="bg-slate-950 text-white py-16 sm:py-24 mt-20">
+			<div class="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-12 gap-12 sm:gap-16">
+				
+				<div class="md:col-span-4 text-center md:text-left">
+					<div class="flex items-center justify-center md:justify-start gap-2 mb-6">
+						<div class="bg-blue-600 text-white w-8 h-8 rounded-lg flex items-center justify-center font-black text-xl" role="img" aria-label="Mobile Dokane logo">M</div>
+						<span class="text-xl font-black uppercase tracking-tighter">Mobile Dokane</span>
+					</div>
+					<p class="text-slate-400 text-sm font-medium leading-relaxed mb-8 max-w-sm mx-auto md:mx-0">
+						Bangladesh's most advanced mobile price tracker and technical decision engine. find your favorite phone with ease.
+					</p>
+				</div>
+
+				<div class="md:col-span-2 text-center md:text-left">
+					<h4 class="text-[10px] font-black uppercase tracking-[0.3em] mb-6 text-blue-500">Navigation</h4>
+					<ul class="space-y-3 text-xs font-bold text-slate-400 uppercase tracking-widest">
+						<li><a href="/" class="hover:text-white transition-colors">Home</a></li>
+						<li><a href="/about" class="hover:text-white transition-colors">About Us</a></li>
+						<li><a href="/category/latest" class="hover:text-white transition-colors">Latest</a></li>
+						<li><a href="/compare" class="hover:text-white transition-colors">Compare</a></li>
+					</ul>
+				</div>
+
+				<div class="md:col-span-2 text-center md:text-left">
+					<h4 class="text-[10px] font-black uppercase tracking-[0.3em] mb-6 text-blue-500">Top Brands</h4>
+					<ul class="space-y-3 text-xs font-bold text-slate-400 uppercase tracking-widest">
+						<li><a href="/brand/apple" class="hover:text-white transition-colors">Apple</a></li>
+						<li><a href="/brand/samsung" class="hover:text-white transition-colors">Samsung</a></li>
+						<li><a href="/brand/google" class="hover:text-white transition-colors">Google</a></li>
+						<li><a href="/brand/xiaomi" class="hover:text-white transition-colors">Xiaomi</a></li>
+					</ul>
+				</div>
+
+				<div class="md:col-span-4">
+					<h4 class="text-[10px] font-black uppercase tracking-[0.3em] mb-6 text-blue-500 text-center md:text-left">Market Briefing</h4>
+					<div class="bg-slate-900/50 p-6 rounded-[2rem] border border-slate-800">
+						<p class="text-slate-400 text-xs font-medium mb-4 leading-relaxed">Join 5,000+ users getting price drop alerts daily.</p>
+						<div class="flex gap-2">
+							<label for="newsletter-email" class="sr-only">Email address for newsletter</label>
+							<input id="newsletter-email" type="email" placeholder="Email" class="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm font-bold focus:border-blue-600 outline-none min-h-[44px]" />
+							<button class="bg-blue-600 px-6 py-3 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-blue-700 min-h-[44px]">Join</button>
+						</div>
+						<p class="text-[9px] font-bold text-slate-500 mt-3 text-center">
+							We respect your privacy. <a href="/privacy" class="text-slate-400 underline hover:text-white transition-colors">Unsubscribe anytime</a>.
+						</p>
+					</div>
+				</div>
+
+			</div>
+
+			<div class="max-w-7xl mx-auto px-6 mt-16 pt-8 border-t border-slate-900 flex flex-col md:flex-row justify-between items-center gap-6 text-[9px] font-black text-slate-600 uppercase tracking-[0.2em]">
+				<p>&copy; 2026 Mobile Dokane. Data-Engine.</p>
+				<div class="flex gap-6">
+					<a href="/privacy" class="hover:text-white transition-colors">Privacy</a>
+					<a href="/terms" class="hover:text-white transition-colors">Terms</a>
+					<a href="/contact" class="hover:text-white transition-colors">Contact</a>
+				</div>
+			</div>
+		</footer>
+
+		<!-- SCROLL TO TOP -->
+		<button id="scroll-to-top" class="fixed bottom-6 right-6 z-[200] w-12 h-12 bg-slate-900 text-white rounded-full shadow-lg shadow-slate-900/30 flex items-center justify-center opacity-0 translate-y-4 transition-all duration-300 hover:bg-blue-600 active:scale-90" aria-label="Scroll to top" style="pointer-events: none;">
+			<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 15.75l7.5-7.5 7.5 7.5" /></svg>
+		</button>
+
+		<script>
+			import searchIndex from '../data/search-index.json';
+
+			// Menu Toggles
+			const menuTrigger = document.getElementById('mobile-menu-trigger');
+			const menu = document.getElementById('mobile-menu');
+			const menuClose = document.getElementById('mobile-menu-close');
+			const searchTrigger = document.getElementById('mobile-search-trigger');
+			const searchOverlay = document.getElementById('mobile-search-overlay');
+			const searchClose = document.getElementById('mobile-search-close');
+
+			const openMenu = () => {
+				menu?.classList.remove('hidden');
+				searchOverlay?.classList.add('hidden');
+				document.body.classList.add('overflow-hidden');
+				menuTrigger?.setAttribute('aria-expanded', 'true');
+				// Focus first link in menu
+				menu?.querySelector('a')?.focus();
+			};
+
+			const closeMenu = () => {
+				menu?.classList.add('hidden');
+				document.body.classList.remove('overflow-hidden');
+				menuTrigger?.setAttribute('aria-expanded', 'false');
+				menuTrigger?.focus();
+			};
+
+			const openSearch = () => {
+				searchOverlay?.classList.remove('hidden');
+				menu?.classList.add('hidden');
+				document.body.classList.add('overflow-hidden');
+				searchTrigger?.setAttribute('aria-expanded', 'true');
+				// Focus search input after overlay appears
+				setTimeout(() => document.getElementById('mobile-search-input')?.focus(), 100);
+			};
+
+			const closeSearch = () => {
+				searchOverlay?.classList.add('hidden');
+				document.body.classList.remove('overflow-hidden');
+				searchTrigger?.setAttribute('aria-expanded', 'false');
+				// Clear search input
+				const mobileInput = document.getElementById('mobile-search-input');
+				const mobileResults = document.getElementById('mobile-suggestions-list');
+				const mobileContainer = document.getElementById('mobile-suggestions-container');
+				if (mobileInput) mobileInput.value = '';
+				if (mobileResults) mobileResults.innerHTML = '';
+				if (mobileContainer) mobileContainer.classList.add('hidden');
+				searchTrigger?.focus();
+			};
+
+			// Trap focus inside mobile menu
+			menu?.addEventListener('keydown', (e) => {
+				if (e.key === 'Tab') {
+					const focusable = menu.querySelectorAll('a, button, input');
+					if (focusable.length === 0) return;
+					const first = focusable[0];
+					const last = focusable[focusable.length - 1];
+					if (e.shiftKey && document.activeElement === first) {
+						e.preventDefault();
+						last.focus();
+					} else if (!e.shiftKey && document.activeElement === last) {
+						e.preventDefault();
+						first.focus();
+					}
+				}
+				if (e.key === 'Escape') closeMenu();
+			});
+
+			// Trap focus inside mobile search overlay
+			searchOverlay?.addEventListener('keydown', (e) => {
+				if (e.key === 'Tab') {
+					const focusable = searchOverlay.querySelectorAll('a, button, input');
+					if (focusable.length === 0) return;
+					const first = focusable[0];
+					const last = focusable[focusable.length - 1];
+					if (e.shiftKey && document.activeElement === first) {
+						e.preventDefault();
+						last.focus();
+					} else if (!e.shiftKey && document.activeElement === last) {
+						e.preventDefault();
+						first.focus();
+					}
+				}
+				if (e.key === 'Escape') closeSearch();
+			});
+
+			menuTrigger?.addEventListener('click', () => {
+				if (menu?.classList.contains('hidden')) {
+					openMenu();
+				} else {
+					closeMenu();
+				}
+			});
+
+			menuClose?.addEventListener('click', closeMenu);
+
+			searchTrigger?.addEventListener('click', openSearch);
+			searchClose?.addEventListener('click', closeSearch);
+
+			// Backdrop tap to close
+			searchOverlay?.addEventListener('click', (e) => {
+				if (e.target === searchOverlay) closeSearch();
+			});
+
+			// Scroll to Top
+			const scrollToTopBtn = document.getElementById('scroll-to-top');
+			let scrollTimeout: number;
+			window.addEventListener('scroll', () => {
+				clearTimeout(scrollTimeout);
+				scrollTimeout = window.setTimeout(() => {
+					if (window.scrollY > 500) {
+						scrollToTopBtn?.classList.remove('opacity-0', 'translate-y-4');
+						scrollToTopBtn?.classList.add('opacity-100', 'translate-y-0');
+						if (scrollToTopBtn) scrollToTopBtn.style.pointerEvents = 'auto';
+					} else {
+						scrollToTopBtn?.classList.add('opacity-0', 'translate-y-4');
+						scrollToTopBtn?.classList.remove('opacity-100', 'translate-y-0');
+						if (scrollToTopBtn) scrollToTopBtn.style.pointerEvents = 'none';
+					}
+				}, 100);
+			}, { passive: true });
+
+			scrollToTopBtn?.addEventListener('click', () => {
+				window.scrollTo({ top: 0, behavior: 'smooth' });
+			});
+
+			// XSS-safe HTML escaping
+			const esc = (str) => String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+			// Search setup (Desktop & Mobile)
+			const setupSearch = (inputId: string, suggestionsId: string, listId: string) => {
+				const input = document.getElementById(inputId) as HTMLInputElement;
+				const box = document.getElementById(suggestionsId);
+				const list = document.getElementById(listId);
+
+				if (!input || !list) return;
+
+				input.addEventListener('input', (e) => {
+					const query = (e.target as HTMLInputElement).value.toLowerCase().trim();
+					if (query.length < 2) {
+						if(box) box.classList.add('hidden');
+						list.innerHTML = '';
+						return;
+					}
+
+					// Show Skeleton
+					if(box) box.classList.remove('hidden');
+					list.innerHTML = `
+						<div class="p-4 space-y-4">
+							${[1,2,3].map(() => `
+								<div class="flex items-center gap-4 animate-pulse">
+									<div class="w-10 h-10 bg-slate-100 rounded-lg"></div>
+									<div class="flex-1 space-y-2">
+										<div class="h-3 bg-slate-100 rounded w-1/2"></div>
+										<div class="h-2 bg-slate-50 rounded w-1/4"></div>
+									</div>
+								</div>
+							`).join('')}
+						</div>
+					`;
+
+					const matches = searchIndex.filter(p => p.n.toLowerCase().includes(query) || p.b.toLowerCase().includes(query)).slice(0, 6);
+
+					if (matches.length > 0) {
+						list.innerHTML = matches.map(p => `
+							<a href="/phone/${p.s}" class="flex items-center gap-4 px-6 py-4 hover:bg-slate-50 transition-colors group border-b border-slate-50 last:border-0">
+								<img src="${esc(p.i)}" alt="${esc(p.n)} — product photo" class="w-10 h-10 object-contain" />
+								<div>
+									<p class="text-xs font-bold text-slate-900 group-hover:text-blue-600 uppercase tracking-tight">${esc(p.n)}</p>
+									<p class="text-[9px] font-medium text-slate-400 uppercase tracking-widest">${esc(p.b)}</p>
+								</div>
+							</a>
+						`).join('');
+						if(box) box.classList.remove('hidden');
+					} else {
+						if(box) box.classList.add('hidden');
+						list.innerHTML = `<div class="p-8 text-center text-[10px] font-black text-slate-400 uppercase tracking-widest">No results found</div>`;
+					}
+				});
+			};
+
+			setupSearch('header-search', 'header-suggestions', 'header-suggestions-list');
+			setupSearch('mobile-search-input', 'mobile-suggestions-container', 'mobile-suggestions-list');
+		</script>
+
+		<style>
+			.no-scrollbar::-webkit-scrollbar { display: none; }
+			.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+			/* Focus-visible styles for keyboard navigation */
+			*:focus-visible {
+				outline: 2px solid #2563eb;
+				outline-offset: 2px;
+				border-radius: 4px;
+			}
+
+			/* Remove outline for mouse clicks, keep for keyboard */
+			*:focus:not(:focus-visible) {
+				outline: none;
+			}
+
+			/* Print styles */
+			@media print {
+				header, footer, nav, #scroll-to-top, .no-print { display: none !important; }
+				body { background: #fff !important; color: #000 !important; }
+				main { margin: 0 !important; padding: 0 !important; }
+				a { color: #000 !important; text-decoration: underline !important; }
+				img { max-width: 100% !important; page-break-inside: avoid; }
+				h1, h2, h3, h4 { page-break-after: avoid; }
+				table { page-break-inside: auto; }
+				tr { page-break-inside: avoid; }
+			}
+		</style>
+	</body>
+</html>

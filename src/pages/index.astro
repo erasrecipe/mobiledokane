@@ -1,17 +1,273 @@
 ---
+import Layout from '../layouts/Layout.astro';
+import PhoneCard from '../components/PhoneCard.astro';
+import phones from '../data/phones.json';
 
+// Helper to filter and limit
+const getPhones = (filterFn, limit = 6) => {
+    return phones.filter(filterFn).slice(0, limit);
+};
+
+// 1. Latest Release (Sorted by date)
+const latestPhones = [...phones].sort((a, b) => new Date(b.release_date) - new Date(a.release_date)).slice(0, 6);
+
+// 2. Best Selling
+const bestSellingPhones = getPhones(p => p.is_bestselling);
+
+// 3. Upcoming
+const upcomingPhones = getPhones(p => p.is_upcoming);
+
+// 4. Flagship
+const flagshipPhones = getPhones(p => p.is_flagship);
+
+// 5. Budget (Price < 50,000 BDT)
+const budgetPhones = getPhones(p => p.prices.unofficial < 50000);
+
+const sections = [
+    { title: 'Latest Release', slug: 'latest', data: latestPhones, accent: 'blue' },
+    { title: 'Best Selling', slug: 'bestselling', data: bestSellingPhones, accent: 'emerald' },
+    { title: 'Upcoming Devices', slug: 'upcoming', data: upcomingPhones, accent: 'purple' },
+    { title: 'Premium Flagships', slug: 'flagship', data: flagshipPhones, accent: 'slate' },
+    { title: 'Budget Friendly', slug: 'budget', data: budgetPhones, accent: 'rose' },
+];
+
+const brandEmojis: Record<string, string> = {
+  Apple: '🍎', Samsung: '📱', Google: '🤖', OnePlus: '🔴',
+  Xiaomi: '🟠', Vivo: '🔵', Realme: '💚', Oppo: '💙', Motorola: 'Ⓜ️',
+};
+const categories = phones.length > 0
+  ? [...new Set(phones.map(p => p.brand))].map(name => ({ name, icon: brandEmojis[name] || '📱' }))
+  : [];
+
+const webSiteSchema = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "name": "Mobile Dokane",
+  "url": "https://mobiledokane.com",
+  "description": "Bangladesh's most advanced mobile phone price aggregator with verified specs, benchmarks, and real-time BDT pricing.",
+  "potentialAction": {
+    "@type": "SearchAction",
+    "target": "https://mobiledokane.com/search?q={search_term_string}",
+    "query-input": "required name=search_term_string"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "Mobile Dokane",
+    "url": "https://mobiledokane.com",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://mobiledokane.com/logo.png"
+    }
+  }
+};
 ---
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="icon" href="/favicon.ico" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
-</html>
+<Layout title="Mobile Phone Price in Bangladesh - Mobile Dokane" description="Compare mobile phone prices in Bangladesh. Get verified specs, lab-tested benchmarks, and real-time BDT pricing from Dhaka's top markets. Find your perfect phone today.">
+  <Fragment slot="head">
+    <script type="application/ld+json" set:html={JSON.stringify(webSiteSchema)} />
+  </Fragment>
+	
+    <!-- ═══════════════════════════════════════════════════════════
+         ELITE HERO SECTION
+    ═══════════════════════════════════════════════════════════ -->
+    <section class="bg-white pt-20 pb-32 relative overflow-hidden border-b border-slate-200">
+        <div class="absolute inset-0 pointer-events-none">
+            <div class="absolute top-0 right-0 w-[600px] h-[600px] bg-blue-50 rounded-full blur-[120px] opacity-50 -mr-40 -mt-40"></div>
+            <div class="absolute bottom-0 left-0 w-[500px] h-[500px] bg-slate-50 rounded-full blur-[100px] opacity-50 -ml-20 -mb-20"></div>
+        </div>
+
+        <div class="max-w-6xl mx-auto px-6 relative z-10 text-center">
+            <div class="inline-flex items-center gap-2 px-3 py-1 bg-slate-900 text-white text-[10px] font-black uppercase tracking-[0.2em] rounded-full mb-8 shadow-2xl">
+                <span class="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse"></span>
+                Live Price Aggregator · BD
+            </div>
+            
+            <p class="text-lg md:text-xl text-slate-500 font-bold mb-12 max-w-2xl mx-auto leading-relaxed">
+                Aggregating real-time prices from 50+ trusted shops in Bashundhara City, Jamuna Future Park, and official sources.
+            </p>
+            
+            <!-- Professional Search Tool -->
+            <div class="flex flex-col md:flex-row items-center justify-center gap-4 max-w-3xl mx-auto mb-12">
+                <h1 class="sr-only">Mobile Phone Price in Bangladesh — Compare Specs & Prices</h1>
+                <div class="relative w-full md:flex-1 group">
+                    <input 
+                        id="hero-search"
+                        type="text" 
+                        placeholder="Search model (e.g. iPhone 17 Pro Max)..." 
+                        class="w-full bg-white border-2 border-slate-200 h-16 px-6 rounded-2xl font-bold text-slate-900 focus:border-blue-600 focus:outline-none transition-all shadow-sm group-hover:shadow-md"
+                        autocomplete="off"
+                    />
+                    <div class="absolute right-4 top-1/2 -translate-y-1/2 bg-slate-900 text-white p-2 rounded-xl cursor-pointer hover:bg-blue-600 transition-colors" id="search-trigger">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+                        </svg>
+                    </div>
+                    {/* Search Suggestions Dropdown */}
+                    <div id="search-suggestions" class="absolute top-full left-0 w-full bg-white border border-slate-200 rounded-2xl mt-2 shadow-2xl z-[100] hidden overflow-hidden">
+                        <div id="suggestions-list" class="divide-y divide-slate-50"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Price Range Selector -->
+            <div class="max-w-4xl mx-auto mb-16">
+                <p class="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 mb-6">Find by Budget</p>
+                <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+                    {[
+                        { label: '5k-10k', slug: '5k-10k' },
+                        { label: '10k-20k', slug: '10k-20k' },
+                        { label: '20k-40k', slug: '20k-40k' },
+                        { label: '40k-60k', slug: '40k-60k' },
+                        { label: '60k-100k', slug: '60k-100k' },
+                        { label: '100k+', slug: '100k-plus' },
+                    ].map(range => (
+                        <a href={`/price/${range.slug}`} class="bg-white border-2 border-slate-200 py-3 rounded-xl font-black text-[11px] text-slate-900 uppercase tracking-widest hover:border-blue-600 hover:text-blue-600 hover:bg-blue-50 transition-all shadow-sm">
+                            {range.label}
+                        </a>
+                    ))}
+                </div>
+            </div>
+
+            <!-- Brand Swiper -->
+            <div class="flex flex-wrap justify-center gap-3">
+                {categories.map(cat => (
+                    <a href={`/brand/${cat.name.toLowerCase()}`} class="flex items-center gap-2 bg-white border border-slate-200 px-5 py-2.5 rounded-full hover:border-blue-600 hover:bg-blue-50 transition-all text-[10px] font-black text-slate-700 uppercase tracking-widest shadow-sm">
+                        {cat.icon} {cat.name}
+                    </a>
+                ))}
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         CONTENT SECTIONS (Optimized for 6 per row)
+    ═══════════════════════════════════════════════════════════ -->
+    <div class="bg-[#eeeeee] space-y-1">
+        {sections.map((section, idx) => (
+            <section class={`py-24 ${idx % 2 === 0 ? 'bg-[#eeeeee]' : 'bg-white border-y border-slate-200'}`}>
+                <div class="max-w-[1400px] mx-auto px-6">
+                    <div class="flex flex-col md:flex-row justify-between items-center md:items-end mb-12 gap-4">
+                        <div class="text-center md:text-left">
+                            <p class={`text-[10px] font-black uppercase tracking-[0.4em] mb-2 text-slate-500`}>Direct from Market</p>
+                            <h2 class="text-4xl font-black text-slate-900 tracking-tighter uppercase">{section.title}</h2>
+                        </div>
+                        <a href={`/category/${section.slug}`} class="px-8 py-2.5 bg-white border border-slate-300 rounded-full text-[10px] font-black uppercase tracking-widest text-slate-600 hover:bg-slate-900 hover:text-white transition-all shadow-sm">
+                            View All {section.title}
+                        </a>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-6">
+                        {section.data.map((phone) => (
+                            <PhoneCard phone={phone} />
+                        ))}
+                    </div>
+                </div>
+            </section>
+        ))}
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         TRUST & DATA SECTION
+    ═══════════════════════════════════════════════════════════ -->
+    <section class="bg-white py-32 border-t border-slate-200">
+        <div class="max-w-6xl mx-auto px-6">
+            <div class="grid md:grid-cols-3 gap-16">
+                <div class="text-center md:text-left">
+                    <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center mb-8 mx-auto md:mx-0">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>
+                    </div>
+                    <h3 class="text-xl font-black text-slate-900 uppercase tracking-tight mb-4">Price Analytics</h3>
+                    <p class="text-sm font-bold text-slate-500 leading-relaxed">We track price history so you can see if a deal is actually a good deal or just marketing noise.</p>
+                </div>
+                <div class="text-center md:text-left">
+                    <div class="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center mb-8 mx-auto md:mx-0">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04M12 21.355r-.343-.133L5.572 18.247a2.321 2.321 0 01-1.418-2.137V9.48c0-.603.196-1.187.556-1.67L12 2.944l7.292 4.866a2.32 2.32 0 01.556 1.67v6.63c0 1.075-.533 2.08-1.418 2.137l-6.085 2.975-.343.133z" /></svg>
+                    </div>
+                    <h3 class="text-xl font-black text-slate-900 uppercase tracking-tight mb-4">Market Verification</h3>
+                    <p class="text-sm font-bold text-slate-500 leading-relaxed">Every price is verified against physical stock in Dhaka's biggest mobile markets daily.</p>
+                </div>
+                <div class="text-center md:text-left">
+                    <div class="w-12 h-12 bg-purple-50 text-purple-600 rounded-2xl flex items-center justify-center mb-8 mx-auto md:mx-0">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.691.346a6 6 0 01-3.86.517l-2.387-.477a2 2 0 00-1.022.547l-1.168 1.168a2 2 0 01-3.188-2.489l1.158-1.158a2 2 0 00.547-1.022l.477-2.387a6 6 0 00-.517-3.86l-.346-.691a6 6 0 01-.517-3.86l.477-2.387a2 2 0 00-.547-1.022L1.708 4.412a2 2 0 012.489-3.188l1.158 1.158a2 2 0 001.022.547l2.387.477a6 6 0 003.86-.517l2.387.477a2 2 0 001.022-.547l1.168-1.168a2 2 0 013.188 2.489l-1.158 1.158a2 2 0 00-.547 1.022l-.477 2.387a6 6 0 00.517 3.86l.346.691a6 6 0 01.517 3.86l-.477 2.387a2 2 0 00.547 1.022l1.168 1.168a2 2 0 01-2.489 3.188l-1.158-1.158z" /></svg>
+                    </div>
+                    <h3 class="text-xl font-black text-slate-900 uppercase tracking-tight mb-4">Expert Benchmarks</h3>
+                    <p class="text-sm font-bold text-slate-500 leading-relaxed">Don't just look at RAM and ROM. See actual lab results for display, battery, and CPU power.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+</Layout>
+
+<script>
+    import searchIndex from '../data/search-index.json';
+
+    // XSS-safe HTML escaping
+    const esc = (str) => String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+    const searchInput = document.getElementById('hero-search') as HTMLInputElement;
+    const suggestionsBox = document.getElementById('search-suggestions');
+    const suggestionsList = document.getElementById('suggestions-list');
+    const searchTrigger = document.getElementById('search-trigger');
+
+    if (searchInput && suggestionsBox && suggestionsList) {
+        searchInput.addEventListener('input', (e) => {
+            const query = (e.target as HTMLInputElement).value.toLowerCase().trim();
+
+            if (query.length < 2) {
+                suggestionsBox.classList.add('hidden');
+                return;
+            }
+
+            const matches = searchIndex.filter(p =>
+                p.n.toLowerCase().includes(query) ||
+                p.b.toLowerCase().includes(query)
+            ).slice(0, 5);
+
+            if (matches.length > 0) {
+                suggestionsList.innerHTML = matches.map(p => `
+                    <a href="/phone/${p.s}" class="flex items-center gap-4 px-6 py-4 hover:bg-slate-50 transition-colors group">
+                        <img src="${esc(p.i)}" alt="${esc(p.n)} — product photo" class="w-10 h-10 object-contain" loading="lazy" decoding="async" width="40" height="40" />
+                        <div>
+                            <p class="text-sm font-black text-slate-900 group-hover:text-blue-600">${esc(p.n)}</p>
+                            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">${esc(p.b)}</p>
+                        </div>
+                    </a>
+                `).join('');
+                suggestionsBox.classList.remove('hidden');
+            } else {
+                suggestionsBox.classList.add('hidden');
+            }
+        });
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!searchInput.contains(e.target as Node) && !suggestionsBox.contains(e.target as Node)) {
+                suggestionsBox.classList.add('hidden');
+            }
+        });
+
+        const performSearch = () => {
+            const query = searchInput.value.toLowerCase().trim();
+            const match = searchIndex.find(p => p.n.toLowerCase() === query || p.s === query);
+            if (match) {
+                window.location.href = `/phone/${match.s}`;
+            } else if (query.length > 0) {
+                const firstMatch = searchIndex.find(p => p.n.toLowerCase().includes(query));
+                if (firstMatch) {
+                    window.location.href = `/phone/${firstMatch.s}`;
+                }
+            }
+        };
+
+        searchTrigger?.addEventListener('click', performSearch);
+        searchInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') performSearch();
+        });
+    }
+</script>
+
+<style>
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+</style>

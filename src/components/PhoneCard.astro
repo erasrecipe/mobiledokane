@@ -1,0 +1,69 @@
+---
+import { formatPrice } from '../utils/format';
+
+interface Props {
+  phone: {
+    id: string;
+    name: string;
+    slug: string;
+    image: string;
+    rating: number;
+    prices: {
+      official: number;
+      unofficial: number;
+      used_estimate: number;
+    };
+    best_for: string[];
+  };
+}
+
+const { phone } = Astro.props;
+
+const savings = phone.prices.official > phone.prices.unofficial 
+  ? phone.prices.official - phone.prices.unofficial 
+  : 0;
+---
+
+<a href={`/phone/${phone.slug}`} class="group relative flex flex-col bg-white rounded-2xl border border-slate-200 hover:border-blue-400 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden h-full shadow-sm">
+  
+  {/* Floating Badge (Savings) */}
+  {savings > 0 && (
+    <div class="absolute top-0 right-0 bg-green-500 text-white text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-bl-2xl z-10 shadow-sm">
+      Save {formatPrice(savings)}
+    </div>
+  )}
+
+  {/* Image Section */}
+  <div class="p-4 pb-0 flex items-center justify-center bg-gradient-to-b from-slate-50 to-white">
+    <img
+      src={phone.image}
+      alt={`${phone.name} — product photo`}
+      width="400"
+      height="500"
+      class="h-32 sm:h-40 object-contain mix-blend-multiply group-hover:scale-110 transition-transform duration-500"
+      loading="lazy"
+      decoding="async"
+    />
+  </div>
+
+  {/* Info Section */}
+  <div class="p-4 flex-1 flex flex-col">
+    {/* Tags */}
+    <div class="flex flex-wrap gap-1 mb-1.5">
+      {phone.best_for.slice(0, 1).map((tag) => (
+        <span class="text-[8px] font-black text-slate-400 uppercase tracking-widest border border-slate-100 px-1.5 py-0.5 rounded-md">{tag}</span>
+      ))}
+    </div>
+
+    <h3 class="text-sm font-black text-slate-900 leading-tight mb-3 group-hover:text-blue-600 transition-colors line-clamp-2">
+      {phone.name}
+    </h3>
+    
+    <div class="mt-auto">
+      <div class="flex flex-col">
+        <span class="text-xs sm:text-sm font-black text-green-600 tracking-tight">{formatPrice(phone.prices.unofficial)}</span>
+        <span class="text-[8px] font-bold text-slate-400 uppercase tracking-wide">Unofficial</span>
+      </div>
+    </div>
+  </div>
+</a>

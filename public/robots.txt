@@ -1,0 +1,8 @@
+# Mobile Dokane - robots.txt
+# https://mobiledokane.com
+
+User-agent: *
+Allow: /
+
+# Sitemap location
+Sitemap: https://mobiledokane.com/sitemap.xml

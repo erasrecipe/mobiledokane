@@ -1,0 +1,241 @@
+---
+import Layout from '../layouts/Layout.astro';
+import phones from '../data/phones.json';
+
+// Only pass the fields the compare page actually needs — avoids serializing
+// the entire phones.json (which includes benchmarks, detailed_content, etc.)
+// into the HTML payload.
+const compareData = phones.map(p => ({
+  slug: p.slug,
+  name: p.name,
+  brand: p.brand,
+  image: p.image,
+  prices: { unofficial: p.prices.unofficial },
+  specs_v2: p.specs_v2
+}));
+---
+
+<Layout title="Compare Mobile Phones Side-by-Side - Mobile Dokane" description="Compare two phones side-by-side. Full specs, benchmarks, cameras, battery life, and pricing in Bangladesh. Make the right choice." url="https://mobiledokane.com/compare">
+  <Fragment slot="head">
+    <link rel="canonical" href="https://mobiledokane.com/compare" />
+  </Fragment>
+
+  <section class="bg-white border-b border-slate-200 py-12 lg:py-16">
+    <div class="max-w-6xl mx-auto px-6">
+      <h1 class="text-4xl lg:text-6xl font-black text-slate-900 tracking-tighter uppercase mb-4 text-center">
+        Compare <span class="text-blue-600">Devices</span>
+      </h1>
+      <p class="text-center text-slate-500 font-bold uppercase text-[10px] tracking-[0.3em]">Side-by-side Technical Analysis</p>
+    </div>
+  </section>
+
+  <section class="bg-[#eeeeee] py-12 min-h-screen">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6">
+
+      {/* SELECTION GRID */}
+      <div id="compare-selection-grid" class="grid grid-cols-2 gap-4 md:gap-8 mb-12">
+        {/* Will be populated by JS */}
+        <div class="flex flex-col items-center animate-pulse">
+           <div class="w-full bg-white rounded-3xl border border-slate-200 p-6 h-[300px]"></div>
+        </div>
+        <div class="flex flex-col items-center animate-pulse">
+           <div class="w-full bg-white rounded-3xl border border-slate-200 p-6 h-[300px]"></div>
+        </div>
+      </div>
+
+      {/* COMPARISON TABLE */}
+      <div id="compare-table-container">
+        {/* Will be populated by JS */}
+      </div>
+
+    </div>
+  </section>
+
+</Layout>
+
+<script is:inline define:vars={{ phones: compareData }}>
+  // XSS-safe HTML escaping
+  const esc = (str) => String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+  const formatPrice = (price) => {
+    return new Intl.NumberFormat('en-BD', { style: 'currency', currency: 'BDT', maximumFractionDigits: 0 }).format(price);
+  };
+
+  function updateUI() {
+    const url = new URL(window.location.href);
+    const p1Slug = url.searchParams.get('p1');
+    const p2Slug = url.searchParams.get('p2');
+
+    const phone1 = phones.find(p => p.slug === p1Slug);
+    const phone2 = phones.find(p => p.slug === p2Slug);
+
+    renderSelectionGrid(phone1, phone2);
+    renderComparisonTable(phone1, phone2);
+  }
+
+  function renderSelectionGrid(phone1, phone2) {
+    const container = document.getElementById('compare-selection-grid');
+    if (!container) return;
+
+    const renderPhoneSlot = (phone, slotId, label) => `
+      <div class="flex flex-col items-center">
+        <div class="w-full bg-white rounded-3xl border border-slate-200 p-6 flex flex-col items-center text-center shadow-sm relative min-h-[300px] justify-center">
+          ${phone ? `
+            <img src="${phone.image}" alt="${phone.name} — product photo" class="h-40 object-contain mb-4" />
+            <h3 class="text-sm font-black text-slate-900 uppercase leading-tight mb-2">${phone.name}</h3>
+            <p class="text-lg font-black text-green-600">${formatPrice(phone.prices.unofficial)}</p>
+            <button onclick="removePhone('${slotId}')" class="mt-4 min-h-[44px] px-4 py-2 text-xs font-black text-slate-400 uppercase hover:text-red-500 bg-slate-100 rounded-lg hover:bg-red-50 transition-all">Remove</button>
+          ` : `
+            <div class="w-full flex flex-col items-center gap-4">
+              <div class="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center text-slate-400">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
+              </div>
+              <p class="text-xs font-black text-slate-400 uppercase">Select ${label}</p>
+              <div class="relative w-full">
+                <input type="text" id="search-${slotId}" placeholder="Search phones..." class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 pr-10 min-h-[44px] text-xs font-bold outline-none focus:border-blue-600" autocomplete="off" />
+                <svg class="w-4 h-4 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg>
+                <div id="results-${slotId}" class="absolute top-full left-0 w-full bg-white border border-slate-200 rounded-xl mt-2 shadow-2xl z-50 max-h-48 overflow-y-auto hidden"></div>
+              </div>
+            </div>
+          `}
+        </div>
+      </div>
+    `;
+
+    container.innerHTML = renderPhoneSlot(phone1, 'p1', 'First Device') + renderPhoneSlot(phone2, 'p2', 'Second Device');
+
+    // Attach search listeners for both slots
+    ['p1', 'p2'].forEach(slotId => {
+      const input = document.getElementById(`search-${slotId}`);
+      const results = document.getElementById(`results-${slotId}`);
+      if (!input || !results) return;
+
+      input.addEventListener('input', () => {
+        const query = input.value.toLowerCase().trim();
+        if (query.length < 1) {
+          results.classList.add('hidden');
+          return;
+        }
+
+        const matches = phones.filter(p =>
+          p.name.toLowerCase().includes(query) || p.brand.toLowerCase().includes(query)
+        ).slice(0, 10);
+
+        if (matches.length > 0) {
+          results.innerHTML = matches.map(p => `
+            <button onclick="selectPhone('${slotId}', '${esc(p.slug)}')" class="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-slate-50 text-left transition-colors border-b border-slate-50 last:border-0">
+              <img src="${esc(p.image)}" alt="${esc(p.name)} — product photo" class="w-8 h-8 object-contain" loading="lazy" width="40" height="40" />
+              <div class="min-w-0">
+                <p class="text-xs font-bold text-slate-900 truncate">${esc(p.name)}</p>
+                <p class="text-[9px] text-slate-400">${esc(p.brand)}</p>
+              </div>
+            </button>
+          `).join('');
+          results.classList.remove('hidden');
+        } else {
+          results.innerHTML = `<div class="p-4 text-center text-[10px] font-bold text-slate-400">No results found</div>`;
+          results.classList.remove('hidden');
+        }
+      });
+
+      input.addEventListener('focus', () => {
+        if (input.value.length >= 1) input.dispatchEvent(new Event('input'));
+      });
+
+      // Close dropdown on outside click
+      document.addEventListener('click', (e) => {
+        if (!input.contains(e.target) && !results.contains(e.target)) {
+          results.classList.add('hidden');
+        }
+      });
+    });
+  }
+
+  function renderComparisonTable(phone1, phone2) {
+    const container = document.getElementById('compare-table-container');
+    if (!container) return;
+
+    if (phone1 && phone2) {
+      const allCategories = Array.from(new Set([
+        ...Object.keys(phone1.specs_v2 || {}),
+        ...Object.keys(phone2.specs_v2 || {})
+      ]));
+
+      let html = '<div class="space-y-8">';
+      allCategories.forEach(category => {
+        html += `
+          <div class="rounded-2xl overflow-hidden border border-slate-200 shadow-sm" aria-label="${category} comparison">
+            <div class="bg-slate-800 text-white px-6 py-3 text-center">
+              <h3 class="text-sm font-bold uppercase tracking-[0.3em]">${category}</h3>
+            </div>
+            <div class="bg-white divide-y divide-slate-100">
+        `;
+
+        const allKeys = Array.from(new Set([
+          ...Object.keys(phone1.specs_v2?.[category] || {}),
+          ...Object.keys(phone2.specs_v2?.[category] || {})
+        ]));
+
+        allKeys.forEach(key => {
+          const val1 = esc(phone1.specs_v2?.[category]?.[key] || '—');
+          const val2 = esc(phone2.specs_v2?.[category]?.[key] || '—');
+          const label = esc(key);
+          html += `
+            <div class="grid grid-cols-5 hover:bg-slate-50 transition-colors border-b border-slate-50 last:border-0">
+              <!-- Phone 1 Value (Left) -->
+              <div class="col-span-2 p-3 sm:p-4 text-right border-r border-slate-100 flex items-center justify-end">
+                <span class="text-[11px] sm:text-sm font-bold text-slate-700 leading-relaxed">
+                  ${val1}
+                </span>
+              </div>
+              <!-- Key Label (Center) -->
+              <div class="col-span-1 bg-slate-100/50 px-2 sm:px-4 py-3 flex items-center justify-center text-center border-r border-slate-200">
+                <span class="text-[10px] sm:text-[11px] font-black text-slate-900 uppercase tracking-widest leading-tight">${label}</span>
+              </div>
+              <!-- Phone 2 Value (Right) -->
+              <div class="col-span-1 p-3 sm:p-4 text-left flex items-center col-span-2">
+                <span class="text-[11px] sm:text-sm font-bold text-slate-700 leading-relaxed">
+                  ${val2}
+                </span>
+              </div>
+            </div>
+          `;
+        });
+
+        html += '</div></div>';
+      });
+      html += '</div>';
+      container.innerHTML = html;
+    } else {
+      container.innerHTML = `
+        <div class="bg-white p-12 rounded-3xl border border-dashed border-slate-200 text-center">
+          <p class="text-slate-400 font-black uppercase tracking-widest text-sm italic">Please select two devices to begin technical comparison.</p>
+        </div>
+      `;
+    }
+  }
+
+  window.selectPhone = function(param, slug) {
+    const url = new URL(window.location.href);
+    if (slug) {
+      url.searchParams.set(param, slug);
+    } else {
+      url.searchParams.delete(param);
+    }
+    window.history.pushState({}, '', url);
+    updateUI();
+  };
+
+  window.removePhone = function(param) {
+    const url = new URL(window.location.href);
+    url.searchParams.delete(param);
+    window.history.pushState({}, '', url);
+    updateUI();
+  };
+
+  // Initial update
+  updateUI();
+
+  // Listen for back/forward buttons
+  window.addEventListener('popstate', updateUI);
+</script>

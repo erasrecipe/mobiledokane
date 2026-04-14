@@ -1,0 +1,153 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import PhoneCard from '../../components/PhoneCard.astro';
+import phones from '../../data/phones.json';
+
+export function getStaticPaths() {
+  return [
+    { params: { type: 'latest' }, props: { title: 'Latest Releases' } },
+    { params: { type: 'bestselling' }, props: { title: 'Best Selling Phones' } },
+    { params: { type: 'upcoming' }, props: { title: 'Upcoming Devices' } },
+    { params: { type: 'flagship' }, props: { title: 'Premium Flagships' } },
+    { params: { type: 'budget' }, props: { title: 'Budget Friendly' } },
+  ];
+}
+
+const { type } = Astro.params;
+const { title } = Astro.props;
+
+let filteredPhones = [];
+
+if (type === 'latest') {
+    filteredPhones = [...phones].sort((a, b) => new Date(b.release_date) - new Date(a.release_date));
+} else if (type === 'bestselling') {
+    filteredPhones = phones.filter(p => p.is_bestselling);
+} else if (type === 'upcoming') {
+    filteredPhones = phones.filter(p => p.is_upcoming);
+} else if (type === 'flagship') {
+    filteredPhones = phones.filter(p => p.is_flagship);
+} else if (type === 'budget') {
+    filteredPhones = phones.filter(p => p.prices.unofficial < 50000);
+}
+
+const itemListSchema = {
+  "@context": "https://schema.org",
+  "@type": "ItemList",
+  "name": title,
+  "itemListElement": filteredPhones.map((phone, i) => ({
+    "@type": "ListItem",
+    "position": i + 1,
+    "item": {
+      "@type": "Product",
+      "name": phone.name,
+      "url": `https://mobiledokane.com/phone/${phone.slug}`,
+      "image": phone.image,
+      "offers": {
+        "@type": "Offer",
+        "price": phone.prices.unofficial,
+        "priceCurrency": "BDT"
+      }
+    }
+  }))
+};
+---
+
+<Layout title={`${title} - Mobile Phone Price in Bangladesh`} description={`Browse ${title.toLowerCase()} phones in Bangladesh. Verified specs, real-time BDT prices, and expert benchmarks for every device.`}>
+  <Fragment slot="head">
+    {filteredPhones.length > 0 && <script type="application/ld+json" set:html={JSON.stringify(itemListSchema)} />}
+  </Fragment>
+    <section class="bg-white border-b border-slate-200 py-16">
+        <div class="max-w-6xl mx-auto px-6">
+            <nav class="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400 mb-8">
+                <a href="/" class="hover:text-blue-600 transition-colors">Home</a>
+                <span>/</span>
+                <span class="text-slate-900">{title}</span>
+            </nav>
+            
+            <h1 class="text-5xl md:text-7xl font-black text-slate-900 tracking-tighter uppercase leading-none">
+                {title}
+            </h1>
+            <p class="mt-6 text-lg font-bold text-slate-500 max-w-2xl">
+                Explore our full collection of {title.toLowerCase()}. We track live prices and technical specs to help you make the best decision.
+            </p>
+        </div>
+    </section>
+
+    <section class="bg-[#eeeeee] py-20 min-h-screen">
+        <div class="max-w-6xl mx-auto px-6">
+            <div class="flex items-center justify-between mb-12">
+                <p class="text-[10px] font-black text-slate-500 uppercase tracking-[0.4em]">Showing {filteredPhones.length} Devices</p>
+                <div class="relative">
+                    <label for="sort-select" class="sr-only">Sort phones</label>
+                    <select id="sort-select" class="bg-white border border-slate-200 rounded-full px-4 py-2 text-[9px] font-black uppercase text-slate-900 outline-none focus:border-blue-600 transition-colors appearance-none cursor-pointer pr-8 min-w-[140px]">
+                        <option value="latest">Latest</option>
+                        <option value="price-low">Price: Low → High</option>
+                        <option value="price-high">Price: High → Low</option>
+                        <option value="name">Name: A → Z</option>
+                        <option value="rating">Rating: Best</option>
+                    </select>
+                    <svg class="w-3 h-3 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                </div>
+            </div>
+
+            <div id="phone-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+                {filteredPhones.map((phone) => (
+                    <PhoneCard phone={phone} />
+                ))}
+            </div>
+        </div>
+    </section>
+</Layout>
+
+<script is:inline define:vars={{ phones: filteredPhones }}>
+  // XSS-safe HTML escaping
+  const esc = (str) => String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+  const sortSelect = document.getElementById('sort-select');
+  const phoneGrid = document.getElementById('phone-grid');
+
+  const formatPrice = (price) => new Intl.NumberFormat('en-BD', { style: 'currency', currency: 'BDT', maximumFractionDigits: 0 }).format(price);
+
+  const renderCards = (phoneList) => {
+    phoneGrid.innerHTML = phoneList.map(p => `
+      <a href="/phone/${esc(p.slug)}" class="group relative flex flex-col bg-white rounded-2xl border border-slate-200 hover:border-blue-400 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden h-full shadow-sm">
+        <div class="p-4 pb-0 flex items-center justify-center bg-gradient-to-b from-slate-50 to-white">
+          <img src="${esc(p.image)}" alt="${esc(p.name)} — product photo" class="h-32 sm:h-40 object-contain mix-blend-multiply group-hover:scale-110 transition-transform duration-500" loading="lazy" width="400" height="500" />
+        </div>
+        <div class="p-4 flex-1 flex flex-col">
+          <div class="flex flex-wrap gap-1 mb-1.5">
+            ${p.best_for && p.best_for.length > 0 ? `<span class="text-[8px] font-black text-slate-400 uppercase tracking-widest border border-slate-100 px-1.5 py-0.5 rounded-md">${esc(p.best_for[0])}</span>` : ''}
+          </div>
+          <h3 class="text-sm font-black text-slate-900 leading-tight mb-3 group-hover:text-blue-600 transition-colors line-clamp-2">${esc(p.name)}</h3>
+          <div class="mt-auto">
+            <div class="flex flex-col">
+              <span class="text-xs sm:text-sm font-black text-green-600 tracking-tight">${formatPrice(p.prices.unofficial)}</span>
+              <span class="text-[8px] font-bold text-slate-400 uppercase tracking-wide">Unofficial</span>
+            </div>
+          </div>
+        </div>
+      </a>
+    `).join('');
+  };
+
+  sortSelect?.addEventListener('change', (e) => {
+    const sorted = [...phones];
+    switch(e.target.value) {
+      case 'price-low':
+        sorted.sort((a, b) => a.prices.unofficial - b.prices.unofficial);
+        break;
+      case 'price-high':
+        sorted.sort((a, b) => b.prices.unofficial - a.prices.unofficial);
+        break;
+      case 'name':
+        sorted.sort((a, b) => a.name.localeCompare(b.name));
+        break;
+      case 'rating':
+        sorted.sort((a, b) => (b.rating || 0) - (a.rating || 0));
+        break;
+      default:
+        sorted.sort((a, b) => new Date(b.release_date) - new Date(a.release_date));
+    }
+    renderCards(sorted);
+  });
+</script>
