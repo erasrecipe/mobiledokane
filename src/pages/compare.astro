@@ -1,6 +1,8 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import phones from '../data/phones.json';
+import { getAllPhones } from '../utils/phones';
+
+const phones = getAllPhones();
 
 // Only pass the fields the compare page actually needs — avoids serializing
 // the entire phones.json (which includes benchmarks, detailed_content, etc.)

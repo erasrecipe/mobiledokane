@@ -1,17 +1,20 @@
 ---
 import Layout from '../../layouts/Layout.astro';
 import PhoneCard from '../../components/PhoneCard.astro';
-import phones from '../../data/phones.json';
+import { getAllPhones } from '../../utils/phones';
 
 export function getStaticPaths() {
+  const phones = getAllPhones();
   const brands = [...new Set(phones.map(p => p.brand.toLowerCase()))];
   return brands.map(brand => ({
     params: { brand },
-    props: { 
-      brandName: phones.find(p => p.brand.toLowerCase() === brand)?.brand || brand 
+    props: {
+      brandName: phones.find(p => p.brand.toLowerCase() === brand)?.brand || brand
     }
   }));
 }
+
+const phones = getAllPhones();
 
 const { brand } = Astro.params;
 const { brandName } = Astro.props;

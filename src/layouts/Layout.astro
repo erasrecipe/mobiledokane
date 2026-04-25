@@ -1,6 +1,8 @@
 ---
 import "../styles/global.css";
-import phones from '../data/phones.json';
+import { getAllPhones } from '../utils/phones';
+
+const phones = getAllPhones();
 
 interface Props {
 	title: string;

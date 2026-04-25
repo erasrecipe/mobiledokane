@@ -1,10 +1,11 @@
 ---
 import Layout from '../../layouts/Layout.astro';
-import phones from '../../data/phones.json';
 import searchIndex from '../../data/search-index.json';
+import { getAllPhones } from '../../utils/phones';
 import { formatPrice, formatTechValue } from '../../utils/format';
 
 export function getStaticPaths() {
+  const phones = getAllPhones();
   return phones.map(phone => ({
     params: { slug: phone.slug },
     props: { phone },
@@ -12,7 +13,7 @@ export function getStaticPaths() {
 }
 
 const { slug } = Astro.params;
-const phoneData = phones.find(p => p.slug === slug) || Astro.props.phone;
+const phoneData = Astro.props.phone;
 const phone = phoneData;
 
 const currentMonthYear = new Date().toLocaleString('en-US', { month: 'long', year: 'numeric' });

@@ -1,7 +1,9 @@
 ---
 import Layout from '../../layouts/Layout.astro';
 import PhoneCard from '../../components/PhoneCard.astro';
-import phones from '../../data/phones.json';
+import { getAllPhones } from '../../utils/phones';
+
+const phones = getAllPhones();
 
 export function getStaticPaths() {
   return [
